@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>graph — swapnil</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0e0e0e;
+    --surface: #161616;
+    --border: #2a2a2a;
+    --border2: #333;
+    --text: #c8c8c8;
+    --text-dim: #555;
+    --text-muted: #888;
+    --accent: #7f77dd;
+    --accent2: #5dcaa5;
+    --node: #3a3a3a;
+    --node-sel: #7f77dd;
+    --node-hub: #534ab7;
+    --edge: #2e2e2e;
+    --font: 'IBM Plex Mono', monospace;
+  }
+
+  html, body { width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; }
+
+  #app { width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+
+  #topbar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+
+  #logo { font-size: 13px; font-weight: 500; color: var(--accent); letter-spacing: 0.08em; margin-right: 8px; }
+
+  #topbar input {
+    font-family: var(--font);
+    font-size: 12px;
+    padding: 6px 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text);
+    outline: none;
+    width: 180px;
+    transition: border 0.15s;
+  }
+  #topbar input:focus { border-color: var(--accent); }
+  #topbar input::placeholder { color: var(--text-dim); }
+
+  .btn {
+    font-family: var(--font);
+    font-size: 11px;
+    padding: 6px 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.15s;
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+  }
+  .btn:hover { border-color: var(--border2); color: var(--text); }
+  .btn.active { border-color: var(--accent2); color: var(--accent2); }
+  .btn.danger:hover { border-color: #e24b4a; color: #e24b4a; }
+
+  #status {
+    margin-left: auto;
+    font-size: 11px;
+    color: var(--text-dim);
+    letter-spacing: 0.03em;
+    display: flex; align-items: center; gap: 6px;
+  }
+  #status-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--text-dim);
+    transition: background 0.3s;
+  }
+  #status-dot.saving { background: #ef9f27; }
+  #status-dot.saved { background: var(--accent2); }
+  #status-dot.error { background: #e24b4a; }
+
+  #hint-bar {
+    padding: 5px 16px;
+    font-size: 10px;
+    color: var(--text-dim);
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+
+  #canvas-wrap { flex: 1; position: relative; overflow: hidden; }
+  canvas { display: block; width: 100%; height: 100%; }
+
+  #tooltip {
+    position: absolute;
+    font-size: 10px;
+    font-family: var(--font);
+    padding: 4px 8px;
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 3px;
+    color: var(--text-muted);
+    pointer-events: none;
+    display: none;
+    letter-spacing: 0.03em;
+  }
+
+  #loading {
+    position: fixed; inset: 0;
+    background: var(--bg);
+    display: flex; align-items: center; justify-content: center;
+    flex-direction: column; gap: 12px;
+    font-size: 12px; color: var(--text-dim);
+    letter-spacing: 0.06em;
+    z-index: 100;
+    transition: opacity 0.4s;
+  }
+  #loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1s infinite; }
+  @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div id="loading-dot"></div>
+  <span>loading graph...</span>
+</div>
+
+<div id="app">
+  <div id="topbar">
+    <span id="logo">// graph</span>
+    <input id="node-input" placeholder="new node..." maxlength="30"/>
+    <button class="btn" id="btn-add">+ add</button>
+    <button class="btn" id="btn-connect">connect</button>
+    <button class="btn danger" id="btn-delete">delete</button>
+    <div id="status">
+      <div id="status-dot"></div>
+      <span id="status-text">ready</span>
+    </div>
+  </div>
+  <div id="hint-bar" id="hint">drag nodes · click to select · double-click canvas to add</div>
+  <div id="canvas-wrap">
+    <canvas id="c"></canvas>
+    <div id="tooltip"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://russyfbfkdlqrsdpjlhr.supabase.co';
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1c3N5ZmJma2RscXJzZHBqbGhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMTc0NTgsImV4cCI6MjA5NDc5MzQ1OH0.v_9wOO48VIP5OqoQ7cl6MdEYHD5XPm4AB9qCTNd5eZA';
+const TABLE = 'graph_data';
+const headers = { 'Content-Type': 'application/json', 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}` };
+
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const wrap = document.getElementById('canvas-wrap');
+const statusDot = document.getElementById('status-dot');
+const statusText = document.getElementById('status-text');
+const hintBar = document.getElementById('hint-bar');
+const loading = document.getElementById('loading');
+
+let nodes = [], edges = [], nextId = 1;
+let selected = null, connectMode = false, connectFrom = null;
+let dragging = null, dragOffX = 0, dragOffY = 0;
+let saveTimer = null;
+
+function setStatus(type, msg) {
+  statusDot.className = type;
+  statusText.textContent = msg;
+}
+
+async function loadGraph() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.main&select=nodes,edges`, { headers });
+    const data = await res.json();
+    if (data && data[0]) {
+      nodes = data[0].nodes || [];
+      edges = data[0].edges || [];
+      nextId = nodes.length ? Math.max(...nodes.map(n => n.id)) + 1 : 1;
+      if (nodes.length === 0) seedDefault();
+    } else {
+      seedDefault();
+    }
+    setStatus('saved', 'loaded');
+  } catch(e) {
+    setStatus('error', 'load failed');
+    seedDefault();
+  }
+  loading.style.opacity = '0';
+  setTimeout(() => loading.style.display = 'none', 400);
+  resize(); tick();
+}
+
+function seedDefault() {
+  const cx = wrap.clientWidth/2 || 400, cy = wrap.clientHeight/2 || 280;
+  nodes = [
+    { id:1, x:cx, y:cy, label:'me', r:20, vx:0, vy:0 },
+    { id:2, x:cx-160, y:cy-110, label:'siyotu', r:14, vx:0, vy:0 },
+    { id:3, x:cx+150, y:cy-100, label:'treat trek', r:14, vx:0, vy:0 },
+    { id:4, x:cx-170, y:cy+90, label:'fiverr hustle', r:14, vx:0, vy:0 },
+    { id:5, x:cx+160, y:cy+90, label:'gf website', r:14, vx:0, vy:0 },
+    { id:6, x:cx, y:cy+170, label:'flask', r:12, vx:0, vy:0 },
+  ];
+  edges = [[1,2],[1,3],[1,4],[1,5],[2,6],[5,6]];
+  nextId = 7;
+  scheduleSave();
+}
+
+function scheduleSave() {
+  setStatus('saving', 'saving...');
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(saveGraph, 800);
+}
+
+async function saveGraph() {
+  const payload = { nodes: nodes.map(n => ({...n, vx:0, vy:0})), edges, updated_at: new Date().toISOString() };
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.main`, {
+      method: 'PATCH', headers: { ...headers, 'Prefer': 'return=minimal' },
+      body: JSON.stringify(payload)
+    });
+    setStatus('saved', 'saved ✓');
+  } catch(e) {
+    setStatus('error', 'save failed');
+  }
+}
+
+function resize() {
+  const rect = wrap.getBoundingClientRect();
+  canvas.width = rect.width * devicePixelRatio;
+  canvas.height = rect.height * devicePixelRatio;
+  canvas.style.width = rect.width + 'px';
+  canvas.style.height = rect.height + 'px';
+}
+
+function countEdges(id) { return edges.filter(([a,b]) => a===id||b===id).length; }
+
+function draw() {
+  const dpr = devicePixelRatio;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.save(); ctx.scale(dpr, dpr);
+
+  edges.forEach(([a,b]) => {
+    const na = nodes.find(n=>n.id===a), nb = nodes.find(n=>n.id===b);
+    if (!na||!nb) return;
+    ctx.beginPath(); ctx.moveTo(na.x,na.y); ctx.lineTo(nb.x,nb.y);
+    ctx.strokeStyle = '#2e2e2e'; ctx.lineWidth = 1; ctx.stroke();
+  });
+
+  nodes.forEach(n => {
+    const deg = countEdges(n.id);
+    const r = n.r + deg * 2;
+    const isSel = selected===n.id, isCF = connectFrom===n.id;
+    let fill = n.id===1 ? '#534ab7' : '#2e2e2e';
+    if (isCF) fill = '#1d9e75';
+    if (isSel && !isCF) fill = '#4a4280';
+
+    ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2);
+    ctx.fillStyle = fill; ctx.fill();
+    if (isSel || isCF) { ctx.strokeStyle = isCF ? '#5dcaa5' : '#7f77dd'; ctx.lineWidth = 1.5; ctx.stroke(); }
+
+    const fs = r > 18 ? 12 : 10;
+    ctx.font = `${fs}px 'IBM Plex Mono', monospace`;
+    ctx.fillStyle = isSel ? '#c8c8c8' : '#666';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(n.label, n.x, n.y - r - 9);
+  });
+
+  ctx.restore();
+}
+
+function tick() {
+  const repel = 2800, attract = 0.025, damp = 0.72, cp = 0.003;
+  const cx = wrap.clientWidth/2, cy = wrap.clientHeight/2;
+  nodes.forEach(a => {
+    nodes.forEach(b => {
+      if (a.id===b.id) return;
+      let dx=a.x-b.x, dy=a.y-b.y, d=Math.sqrt(dx*dx+dy*dy)||1;
+      let f=repel/(d*d); a.vx+=(dx/d)*f; a.vy+=(dy/d)*f;
+    });
+    a.vx+=(cx-a.x)*cp; a.vy+=(cy-a.y)*cp;
+  });
+  edges.forEach(([aid,bid]) => {
+    const a=nodes.find(n=>n.id===aid), b=nodes.find(n=>n.id===bid);
+    if(!a||!b) return;
+    let dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)||1;
+    let f=(d-130)*attract, fx=(dx/d)*f, fy=(dy/d)*f;
+    if(dragging!==a.id){a.vx+=fx;a.vy+=fy;}
+    if(dragging!==b.id){b.vx-=fx;b.vy-=fy;}
+  });
+  nodes.forEach(n => {
+    if(dragging===n.id){n.vx=0;n.vy=0;return;}
+    n.vx*=damp; n.vy*=damp; n.x+=n.vx; n.y+=n.vy;
+    n.x=Math.max(30,Math.min(wrap.clientWidth-30,n.x));
+    n.y=Math.max(30,Math.min(wrap.clientHeight-30,n.y));
+  });
+  draw();
+  requestAnimationFrame(tick);
+}
+
+function getNodeAt(x,y) {
+  return nodes.slice().reverse().find(n => {
+    const r = n.r + countEdges(n.id)*2;
+    return Math.hypot(n.x-x,n.y-y)<=r;
+  });
+}
+
+function getPos(e) {
+  const rect = canvas.getBoundingClientRect();
+  const src = e.touches ? e.touches[0] : e;
+  return { x: src.clientX-rect.left, y: src.clientY-rect.top };
+}
+
+canvas.addEventListener('dblclick', e => {
+  const {x,y} = getPos(e);
+  const n = getNodeAt(x,y);
+  if (!n) {
+    const label = prompt('node name:');
+    if (!label || !label.trim()) return;
+    nodes.push({ id:nextId++, x, y, label:label.trim(), r:14, vx:0, vy:0 });
+    scheduleSave();
+  }
+});
+
+canvas.addEventListener('mousedown', e => {
+  const {x,y} = getPos(e);
+  const n = getNodeAt(x,y);
+  if (connectMode) {
+    if (n) {
+      if (!connectFrom) { connectFrom = n.id; }
+      else if (connectFrom !== n.id) {
+        const exists = edges.some(([a,b])=>(a===connectFrom&&b===n.id)||(a===n.id&&b===connectFrom));
+        if (!exists) { edges.push([connectFrom,n.id]); scheduleSave(); }
+        connectFrom = null;
+      }
+    } else { connectFrom = null; }
+    return;
+  }
+  if (n) { selected=n.id; dragging=n.id; dragOffX=x-n.x; dragOffY=y-n.y; }
+  else { selected=null; }
+});
+
+canvas.addEventListener('mousemove', e => {
+  const {x,y} = getPos(e);
+  if (dragging) {
+    const n = nodes.find(n=>n.id===dragging);
+    if (n) { n.x=x-dragOffX; n.y=y-dragOffY; }
+  }
+  const tt = document.getElementById('tooltip');
+  const n = getNodeAt(x,y);
+  if (n) {
+    tt.style.display='block'; tt.style.left=(x+14)+'px'; tt.style.top=(y-22)+'px';
+    tt.textContent=`${n.label} · ${countEdges(n.id)} links`;
+  } else { tt.style.display='none'; }
+});
+
+canvas.addEventListener('mouseup', () => {
+  if (dragging) scheduleSave();
+  dragging=null;
+});
+canvas.addEventListener('mouseleave', () => { dragging=null; });
+
+document.getElementById('btn-add').addEventListener('click', () => {
+  const input = document.getElementById('node-input');
+  const label = input.value.trim();
+  if (!label) return;
+  const cx=wrap.clientWidth/2, cy=wrap.clientHeight/2;
+  nodes.push({ id:nextId++, x:cx+(Math.random()-.5)*150, y:cy+(Math.random()-.5)*150, label, r:14, vx:0, vy:0 });
+  input.value=''; scheduleSave();
+});
+
+document.getElementById('node-input').addEventListener('keydown', e => {
+  if (e.key==='Enter') document.getElementById('btn-add').click();
+});
+
+document.getElementById('btn-connect').addEventListener('click', () => {
+  connectMode=!connectMode; connectFrom=null;
+  document.getElementById('btn-connect').classList.toggle('active',connectMode);
+  hintBar.textContent = connectMode ? 'connect mode: click first node, then second node to link them' : 'drag nodes · click to select · double-click canvas to add';
+});
+
+document.getElementById('btn-delete').addEventListener('click', () => {
+  if (!selected) return;
+  if (selected===1 && nodes.find(n=>n.id===1)?.label==='me') return;
+  nodes=nodes.filter(n=>n.id!==selected);
+  edges=edges.filter(([a,b])=>a!==selected&&b!==selected);
+  selected=null; scheduleSave();
+});
+
+window.addEventListener('resize', resize);
+loadGraph();
+</script>
+</body>
+</html>
