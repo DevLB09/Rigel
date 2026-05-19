@@ -6,6 +6,20 @@
 <title>graph — swapnil</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
+  /* Passcode Overlay Styles */
+#pass-overlay {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 200; flex-direction: column; gap: 20px;
+}
+#pass-overlay input {
+  background: var(--surface); border: 1px solid var(--border);
+  color: var(--text); padding: 12px; border-radius: 4px;
+  font-family: var(--font); text-align: center; outline: none;
+  letter-spacing: 0.3em; font-size: 18px;
+}
+#pass-overlay input:focus { border-color: var(--accent); }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
@@ -130,7 +144,10 @@
 </style>
 </head>
 <body>
-
+<div id="pass-overlay">
+  <span style="font-size: 11px; color: var(--accent); letter-spacing: 0.2em;">RESTRICTED ACCESS</span>
+  <input type="password" id="pass-input" placeholder="••••••" autofocus />
+</div>
 <div id="loading">
   <div id="loading-dot"></div>
   <span>loading graph...</span>
@@ -138,7 +155,7 @@
 
 <div id="app">
   <div id="topbar">
-    <span id="logo">// graph</span>
+    <span id="logo">Rigel</span>
     <input id="node-input" placeholder="new node..." maxlength="30"/>
     <button class="btn" id="btn-add">+ add</button>
     <button class="btn" id="btn-connect">connect</button>
@@ -156,6 +173,22 @@
 </div>
 
 <script>
+// --- PASSCODE CONFIG ---
+const PASSCODE = "123456"; 
+
+const passOverlay = document.getElementById('pass-overlay');
+const passInput = document.getElementById('pass-input');
+
+passInput.addEventListener('input', () => {
+  if (passInput.value === PASSCODE) {
+    passOverlay.style.display = 'none';
+    
+    // Un-hides loading element and runs your existing load function
+    const loading = document.getElementById('loading');
+    loading.style.display = 'flex';
+    loadGraph(); 
+  }
+});
 const SUPABASE_URL = 'https://russyfbfkdlqrsdpjlhr.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1c3N5ZmJma2RscXJzZHBqbGhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMTc0NTgsImV4cCI6MjA5NDc5MzQ1OH0.v_9wOO48VIP5OqoQ7cl6MdEYHD5XPm4AB9qCTNd5eZA';
 const TABLE = 'graph_data';
