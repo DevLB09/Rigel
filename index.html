@@ -142,6 +142,113 @@
   }
   #loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1s infinite; }
   @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
+
+  /* ── CATEGORY SELECT IN TOPBAR ── */
+  #cat-select {
+    font-family: var(--font); font-size: 11px;
+    padding: 6px 10px; background: var(--bg);
+    border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text-muted); outline: none; cursor: pointer;
+  }
+  #cat-select:focus { border-color: var(--accent); }
+
+  /* ── NODE JOURNAL PANEL ── */
+  #journal-panel {
+    position: fixed; right: 0; top: 0; bottom: 0;
+    width: 300px; background: var(--surface);
+    border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    z-index: 50; transform: translateX(100%);
+    transition: transform 0.2s ease;
+  }
+  #journal-panel.open { transform: translateX(0); }
+  #journal-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  #journal-node-name { font-size: 12px; color: var(--accent); letter-spacing: 0.06em; }
+  #journal-close {
+    font-family: var(--font); font-size: 11px; background: transparent;
+    border: none; color: var(--text-dim); cursor: pointer; padding: 2px 6px;
+  }
+  #journal-close:hover { color: var(--text); }
+  #journal-entries {
+    flex: 1; overflow-y: auto; padding: 12px 16px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  #journal-entries::-webkit-scrollbar { width: 4px; }
+  #journal-entries::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  .journal-entry {
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 4px; padding: 10px 12px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .journal-entry-date { font-size: 9px; color: var(--text-dim); letter-spacing: 0.06em; }
+  .journal-entry-text { font-size: 11px; color: var(--text); line-height: 1.5; }
+  #journal-input-wrap {
+    padding: 12px 16px; border-top: 1px solid var(--border); flex-shrink: 0;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  #journal-input {
+    font-family: var(--font); font-size: 11px;
+    background: var(--bg); border: 1px solid var(--border);
+    border-radius: 4px; color: var(--text); padding: 8px 10px;
+    outline: none; resize: none; height: 72px; line-height: 1.5;
+  }
+  #journal-input:focus { border-color: var(--accent); }
+  #journal-input::placeholder { color: var(--text-dim); }
+  #journal-save {
+    font-family: var(--font); font-size: 11px;
+    background: transparent; border: 1px solid var(--accent);
+    border-radius: 4px; color: var(--accent);
+    padding: 6px; cursor: pointer; letter-spacing: 0.04em;
+  }
+  #journal-save:hover { background: #1e1b40; }
+
+  /* ── SPOTLIGHT SEARCH ── */
+  #spotlight-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    display: flex; align-items: flex-start; justify-content: center;
+    padding-top: 18vh; z-index: 300;
+    opacity: 0; pointer-events: none;
+    transition: opacity 0.15s ease;
+  }
+  #spotlight-overlay.open { opacity: 1; pointer-events: all; }
+  #spotlight-box {
+    width: 540px; max-width: 90vw;
+    background: #1a1a1a; border: 1px solid #3a3a3a;
+    border-radius: 12px; overflow: hidden;
+    box-shadow: 0 24px 60px rgba(0,0,0,0.7);
+  }
+  #spotlight-input-wrap {
+    display: flex; align-items: center; gap: 10px;
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+  }
+  #spotlight-icon { font-size: 14px; color: var(--text-dim); }
+  #spotlight-input {
+    flex: 1; font-family: var(--font); font-size: 14px;
+    background: transparent; border: none; color: var(--text);
+    outline: none; letter-spacing: 0.02em;
+  }
+  #spotlight-input::placeholder { color: var(--text-dim); }
+  #spotlight-esc { font-size: 10px; color: var(--text-dim); letter-spacing: 0.06em; }
+  #spotlight-results {
+    max-height: 320px; overflow-y: auto;
+    padding: 6px 0;
+  }
+  #spotlight-results::-webkit-scrollbar { width: 4px; }
+  #spotlight-results::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+  .sp-result {
+    padding: 10px 18px; cursor: pointer;
+    display: flex; flex-direction: column; gap: 3px;
+    transition: background 0.1s;
+  }
+  .sp-result:hover, .sp-result.active { background: #252525; }
+  .sp-result-node { font-size: 12px; color: var(--accent); letter-spacing: 0.04em; }
+  .sp-result-snippet { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+  .sp-result-snippet mark { background: transparent; color: var(--accent2); font-style: normal; }
+  .sp-empty { padding: 20px 18px; font-size: 11px; color: var(--text-dim); text-align: center; letter-spacing: 0.04em; }
 </style>
 </head>
 <body>
@@ -149,6 +256,7 @@
   <span style="font-size: 11px; color: var(--accent); letter-spacing: 0.2em;">RESTRICTED ACCESS</span>
   <input type="password" id="pass-input" placeholder="••••••" autofocus />
 </div>
+
 <div id="loading">
   <div id="loading-dot"></div>
   <span>loading graph...</span>
@@ -158,24 +266,58 @@
   <div id="topbar">
     <span id="logo">Rigel</span>
     <input id="node-input" placeholder="new node..." maxlength="30"/>
+    <!-- CATEGORY SELECT -->
+    <select id="cat-select">
+      <option value="default">· no category</option>
+      <option value="work">◆ work</option>
+      <option value="personal">◆ personal</option>
+      <option value="ideas">◆ ideas</option>
+      <option value="people">◆ people</option>
+    </select>
     <button class="btn" id="btn-add">+ add</button>
     <button class="btn" id="btn-connect">connect</button>
     <button class="btn danger" id="btn-delete">delete</button>
+    <button class="btn" id="btn-search">⌕ search</button>
     <div id="status">
       <div id="status-dot"></div>
       <span id="status-text">ready</span>
     </div>
   </div>
-  <div id="hint-bar" id="hint">drag nodes · click to select · double-click canvas to add</div>
+  <div id="hint-bar">drag · click to select · double-click to add · right-click node to open journal</div>
   <div id="canvas-wrap">
     <canvas id="c"></canvas>
     <div id="tooltip"></div>
   </div>
 </div>
 
+<!-- NODE JOURNAL PANEL -->
+<div id="journal-panel">
+  <div id="journal-header">
+    <span id="journal-node-name"></span>
+    <button id="journal-close">✕ close</button>
+  </div>
+  <div id="journal-entries"></div>
+  <div id="journal-input-wrap">
+    <textarea id="journal-input" placeholder="write a note for this node..."></textarea>
+    <button id="journal-save">+ add entry</button>
+  </div>
+</div>
+
+<!-- SPOTLIGHT SEARCH -->
+<div id="spotlight-overlay">
+  <div id="spotlight-box">
+    <div id="spotlight-input-wrap">
+      <span id="spotlight-icon">⌕</span>
+      <input id="spotlight-input" placeholder="search nodes and journal entries..." autocomplete="off"/>
+      <span id="spotlight-esc">ESC</span>
+    </div>
+    <div id="spotlight-results"></div>
+  </div>
+</div>
+
 <script>
 // --- PASSCODE CONFIG ---
-const PASSCODE = "883518"; 
+const PASSCODE = "883518";
 
 const passOverlay = document.getElementById('pass-overlay');
 const passInput = document.getElementById('pass-input');
@@ -183,13 +325,12 @@ const passInput = document.getElementById('pass-input');
 passInput.addEventListener('input', () => {
   if (passInput.value === PASSCODE) {
     passOverlay.style.display = 'none';
-    
-    // Un-hides loading element and runs your existing load function
     const loading = document.getElementById('loading');
     loading.style.display = 'flex';
-    loadGraph(); 
+    loadGraph();
   }
 });
+
 const SUPABASE_URL = 'https://russyfbfkdlqrsdpjlhr.supabase.co';
 const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ1c3N5ZmJma2RscXJzZHBqbGhyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMTc0NTgsImV4cCI6MjA5NDc5MzQ1OH0.v_9wOO48VIP5OqoQ7cl6MdEYHD5XPm4AB9qCTNd5eZA';
 const TABLE = 'graph_data';
@@ -207,6 +348,23 @@ let nodes = [], edges = [], nextId = 1;
 let selected = null, connectMode = false, connectFrom = null;
 let dragging = null, dragOffX = 0, dragOffY = 0;
 let saveTimer = null;
+let journalNodeId = null;
+
+// ── CATEGORY COLORS ──
+const CAT_COLORS = {
+  default: '#2e2e2e',
+  work:    '#1e3a5f',
+  personal:'#3b1f4e',
+  ideas:   '#1f3d2e',
+  people:  '#4e2e1a',
+};
+const CAT_STROKE = {
+  default: '#555',
+  work:    '#4a90d9',
+  personal:'#a855f7',
+  ideas:   '#5dcaa5',
+  people:  '#ef9f27',
+};
 
 function setStatus(type, msg) {
   statusDot.className = type;
@@ -238,12 +396,12 @@ async function loadGraph() {
 function seedDefault() {
   const cx = wrap.clientWidth/2 || 400, cy = wrap.clientHeight/2 || 280;
   nodes = [
-    { id:1, x:cx, y:cy, label:'me', r:20, vx:0, vy:0 },
-    { id:2, x:cx-160, y:cy-110, label:'siyotu', r:14, vx:0, vy:0 },
-    { id:3, x:cx+150, y:cy-100, label:'treat trek', r:14, vx:0, vy:0 },
-    { id:4, x:cx-170, y:cy+90, label:'fiverr hustle', r:14, vx:0, vy:0 },
-    { id:5, x:cx+160, y:cy+90, label:'gf website', r:14, vx:0, vy:0 },
-    { id:6, x:cx, y:cy+170, label:'flask', r:12, vx:0, vy:0 },
+    { id:1, x:cx, y:cy, label:'me', r:20, vx:0, vy:0, cat:'default', journal:[] },
+    { id:2, x:cx-160, y:cy-110, label:'siyotu', r:14, vx:0, vy:0, cat:'work', journal:[] },
+    { id:3, x:cx+150, y:cy-100, label:'treat trek', r:14, vx:0, vy:0, cat:'ideas', journal:[] },
+    { id:4, x:cx-170, y:cy+90, label:'fiverr hustle', r:14, vx:0, vy:0, cat:'work', journal:[] },
+    { id:5, x:cx+160, y:cy+90, label:'gf website', r:14, vx:0, vy:0, cat:'personal', journal:[] },
+    { id:6, x:cx, y:cy+170, label:'flask', r:12, vx:0, vy:0, cat:'default', journal:[] },
   ];
   edges = [[1,2],[1,3],[1,4],[1,5],[2,6],[5,6]];
   nextId = 7;
@@ -295,13 +453,26 @@ function draw() {
     const deg = countEdges(n.id);
     const r = n.r + deg * 2;
     const isSel = selected===n.id, isCF = connectFrom===n.id;
-    let fill = n.id===1 ? '#534ab7' : '#2e2e2e';
+    const cat = n.cat || 'default';
+
+    let fill = n.id===1 ? '#534ab7' : CAT_COLORS[cat] || CAT_COLORS.default;
     if (isCF) fill = '#1d9e75';
     if (isSel && !isCF) fill = '#4a4280';
 
     ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2);
     ctx.fillStyle = fill; ctx.fill();
+
+    // category stroke ring
+    if (cat !== 'default' && !isSel && !isCF) {
+      ctx.strokeStyle = CAT_STROKE[cat]; ctx.lineWidth = 1.5; ctx.stroke();
+    }
     if (isSel || isCF) { ctx.strokeStyle = isCF ? '#5dcaa5' : '#7f77dd'; ctx.lineWidth = 1.5; ctx.stroke(); }
+
+    // journal indicator dot
+    if (n.journal && n.journal.length > 0) {
+      ctx.beginPath(); ctx.arc(n.x + r - 2, n.y - r + 2, 3, 0, Math.PI*2);
+      ctx.fillStyle = '#ef9f27'; ctx.fill();
+    }
 
     const fs = r > 18 ? 12 : 10;
     ctx.font = `${fs}px 'IBM Plex Mono', monospace`;
@@ -355,15 +526,73 @@ function getPos(e) {
   return { x: src.clientX-rect.left, y: src.clientY-rect.top };
 }
 
+// ── JOURNAL ──
+function openJournal(nodeId) {
+  const n = nodes.find(n => n.id === nodeId);
+  if (!n) return;
+  journalNodeId = nodeId;
+  document.getElementById('journal-node-name').textContent = n.label;
+  document.getElementById('journal-input').value = '';
+  renderJournalEntries(n);
+  document.getElementById('journal-panel').classList.add('open');
+}
+
+function renderJournalEntries(n) {
+  const el = document.getElementById('journal-entries');
+  if (!n.journal || n.journal.length === 0) {
+    el.innerHTML = '<div style="font-size:11px;color:var(--text-dim);text-align:center;padding-top:20px;">no entries yet</div>';
+    return;
+  }
+  el.innerHTML = n.journal.slice().reverse().map(e => `
+    <div class="journal-entry">
+      <div class="journal-entry-date">${e.date}</div>
+      <div class="journal-entry-text">${e.text}</div>
+    </div>
+  `).join('');
+}
+
+document.getElementById('journal-close').addEventListener('click', () => {
+  document.getElementById('journal-panel').classList.remove('open');
+  journalNodeId = null;
+});
+
+document.getElementById('journal-save').addEventListener('click', () => {
+  const text = document.getElementById('journal-input').value.trim();
+  if (!text || journalNodeId === null) return;
+  const n = nodes.find(n => n.id === journalNodeId);
+  if (!n) return;
+  if (!n.journal) n.journal = [];
+  const now = new Date();
+  const date = now.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+  n.journal.push({ date, text });
+  document.getElementById('journal-input').value = '';
+  renderJournalEntries(n);
+  scheduleSave();
+});
+
+// ctrl+enter to save journal
+document.getElementById('journal-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.ctrlKey) document.getElementById('journal-save').click();
+});
+
 canvas.addEventListener('dblclick', e => {
   const {x,y} = getPos(e);
   const n = getNodeAt(x,y);
   if (!n) {
     const label = prompt('node name:');
     if (!label || !label.trim()) return;
-    nodes.push({ id:nextId++, x, y, label:label.trim(), r:14, vx:0, vy:0 });
+    const cat = document.getElementById('cat-select').value;
+    nodes.push({ id:nextId++, x, y, label:label.trim(), r:14, vx:0, vy:0, cat, journal:[] });
     scheduleSave();
   }
+});
+
+// right-click to open journal
+canvas.addEventListener('contextmenu', e => {
+  e.preventDefault();
+  const {x,y} = getPos(e);
+  const n = getNodeAt(x,y);
+  if (n) openJournal(n.id);
 });
 
 canvas.addEventListener('mousedown', e => {
@@ -394,7 +623,7 @@ canvas.addEventListener('mousemove', e => {
   const n = getNodeAt(x,y);
   if (n) {
     tt.style.display='block'; tt.style.left=(x+14)+'px'; tt.style.top=(y-22)+'px';
-    tt.textContent=`${n.label} · ${countEdges(n.id)} links`;
+    tt.textContent=`${n.label} · ${countEdges(n.id)} links${n.journal&&n.journal.length ? ' · '+n.journal.length+' notes' : ''}`;
   } else { tt.style.display='none'; }
 });
 
@@ -409,7 +638,8 @@ document.getElementById('btn-add').addEventListener('click', () => {
   const label = input.value.trim();
   if (!label) return;
   const cx=wrap.clientWidth/2, cy=wrap.clientHeight/2;
-  nodes.push({ id:nextId++, x:cx+(Math.random()-.5)*150, y:cy+(Math.random()-.5)*150, label, r:14, vx:0, vy:0 });
+  const cat = document.getElementById('cat-select').value;
+  nodes.push({ id:nextId++, x:cx+(Math.random()-.5)*150, y:cy+(Math.random()-.5)*150, label, r:14, vx:0, vy:0, cat, journal:[] });
   input.value=''; scheduleSave();
 });
 
@@ -420,7 +650,7 @@ document.getElementById('node-input').addEventListener('keydown', e => {
 document.getElementById('btn-connect').addEventListener('click', () => {
   connectMode=!connectMode; connectFrom=null;
   document.getElementById('btn-connect').classList.toggle('active',connectMode);
-  hintBar.textContent = connectMode ? 'connect mode: click first node, then second node to link them' : 'drag nodes · click to select · double-click canvas to add';
+  hintBar.textContent = connectMode ? 'connect mode: click first node, then second node to link them' : 'drag · click to select · double-click to add · right-click node to open journal';
 });
 
 document.getElementById('btn-delete').addEventListener('click', () => {
@@ -429,6 +659,111 @@ document.getElementById('btn-delete').addEventListener('click', () => {
   nodes=nodes.filter(n=>n.id!==selected);
   edges=edges.filter(([a,b])=>a!==selected&&b!==selected);
   selected=null; scheduleSave();
+});
+
+// ── SPOTLIGHT SEARCH ──
+const spotlightOverlay = document.getElementById('spotlight-overlay');
+const spotlightInput = document.getElementById('spotlight-input');
+const spotlightResults = document.getElementById('spotlight-results');
+let spActiveIdx = -1;
+
+function openSpotlight() {
+  spotlightOverlay.classList.add('open');
+  spotlightInput.value = '';
+  spotlightResults.innerHTML = '';
+  spActiveIdx = -1;
+  setTimeout(() => spotlightInput.focus(), 50);
+}
+function closeSpotlight() {
+  spotlightOverlay.classList.remove('open');
+}
+
+function highlight(text, query) {
+  if (!query) return text;
+  const re = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
+  return text.replace(re, '<mark>$1</mark>');
+}
+
+function runSearch(q) {
+  spActiveIdx = -1;
+  if (!q.trim()) { spotlightResults.innerHTML = ''; return; }
+  const ql = q.toLowerCase();
+  const results = [];
+  nodes.forEach(n => {
+    // match node label
+    if (n.label.toLowerCase().includes(ql)) {
+      results.push({ nodeId: n.id, nodeLabel: n.label, snippet: null });
+    }
+    // match journal entries
+    (n.journal || []).forEach(e => {
+      if (e.text.toLowerCase().includes(ql)) {
+        results.push({ nodeId: n.id, nodeLabel: n.label, snippet: e.text, date: e.date });
+      }
+    });
+  });
+
+  if (!results.length) {
+    spotlightResults.innerHTML = '<div class="sp-empty">no results found</div>';
+    return;
+  }
+
+  spotlightResults.innerHTML = results.map((r, i) => `
+    <div class="sp-result" data-id="${r.nodeId}" data-i="${i}">
+      <div class="sp-result-node">${highlight(r.nodeLabel, q)}${r.snippet ? ' · <span style="color:var(--text-dim);font-size:10px;">' + r.date + '</span>' : ''}</div>
+      ${r.snippet ? `<div class="sp-result-snippet">${highlight(r.snippet, q)}</div>` : ''}
+    </div>
+  `).join('');
+
+  spotlightResults.querySelectorAll('.sp-result').forEach(el => {
+    el.addEventListener('click', () => {
+      const nodeId = parseInt(el.dataset.id);
+      closeSpotlight();
+      selected = nodeId;
+      openJournal(nodeId);
+    });
+  });
+}
+
+spotlightInput.addEventListener('input', e => runSearch(e.target.value));
+
+spotlightInput.addEventListener('keydown', e => {
+  const items = spotlightResults.querySelectorAll('.sp-result');
+  if (e.key === 'ArrowDown') {
+    e.preventDefault();
+    spActiveIdx = Math.min(spActiveIdx + 1, items.length - 1);
+    items.forEach((el, i) => el.classList.toggle('active', i === spActiveIdx));
+  } else if (e.key === 'ArrowUp') {
+    e.preventDefault();
+    spActiveIdx = Math.max(spActiveIdx - 1, 0);
+    items.forEach((el, i) => el.classList.toggle('active', i === spActiveIdx));
+  } else if (e.key === 'Enter' && spActiveIdx >= 0) {
+    items[spActiveIdx]?.click();
+  } else if (e.key === 'Escape') {
+    closeSpotlight();
+  }
+});
+
+spotlightOverlay.addEventListener('mousedown', e => {
+  if (e.target === spotlightOverlay) closeSpotlight();
+});
+
+document.getElementById('btn-search').addEventListener('click', openSpotlight);
+
+// triple-tap / triple-click to open spotlight
+let clickTimes = [];
+document.addEventListener('click', e => {
+  // ignore clicks inside spotlight or topbar inputs
+  if (e.target.closest('#spotlight-overlay') || e.target.closest('#topbar')) return;
+  const now = Date.now();
+  clickTimes = clickTimes.filter(t => now - t < 600);
+  clickTimes.push(now);
+  if (clickTimes.length >= 3) { clickTimes = []; openSpotlight(); }
+});
+
+// keyboard shortcut: Cmd+K or Ctrl+K
+document.addEventListener('keydown', e => {
+  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openSpotlight(); }
+  if (e.key === 'Escape') closeSpotlight();
 });
 
 window.addEventListener('resize', resize);
