@@ -7,7 +7,6 @@
 <link rel="icon" type="image/png" href="https://i.postimg.cc/P5PDQXXR/145e8114958a5aeb5d6e8887ef432428-removebg-preview.png"/>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500&display=swap" rel="stylesheet"/>
 <style>
-  /* Passcode Overlay Styles */
 #pass-overlay {
   position: fixed; inset: 0; background: var(--bg);
   display: flex; align-items: center; justify-content: center;
@@ -21,252 +20,173 @@
 }
 #pass-overlay input:focus { border-color: var(--accent); }
 
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #0e0e0e; --surface: #161616; --border: #2a2a2a; --border2: #333;
+  --text: #c8c8c8; --text-dim: #555; --text-muted: #888;
+  --accent: #7f77dd; --accent2: #5dcaa5;
+  --node: #3a3a3a; --node-sel: #7f77dd; --node-hub: #534ab7; --edge: #2e2e2e;
+  --font: 'IBM Plex Mono', monospace;
+}
+html, body { width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; }
+#app { width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+#topbar {
+  display: flex; align-items: center; gap: 12px; padding: 10px 16px;
+  border-bottom: 1px solid var(--border); background: var(--surface);
+  flex-shrink: 0; flex-wrap: wrap;
+}
+#logo { font-size: 13px; font-weight: 500; color: var(--accent); letter-spacing: 0.08em; margin-right: 8px; }
+#topbar input {
+  font-family: var(--font); font-size: 12px; padding: 6px 12px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text); outline: none; width: 180px; transition: border 0.15s;
+}
+#topbar input:focus { border-color: var(--accent); }
+#topbar input::placeholder { color: var(--text-dim); }
+.btn {
+  font-family: var(--font); font-size: 11px; padding: 6px 14px;
+  background: transparent; border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text-muted); cursor: pointer; transition: all 0.15s;
+  letter-spacing: 0.04em; white-space: nowrap;
+}
+.btn:hover { border-color: var(--border2); color: var(--text); }
+.btn.active { border-color: var(--accent2); color: var(--accent2); }
+.btn.danger:hover { border-color: #e24b4a; color: #e24b4a; }
+#status {
+  margin-left: auto; font-size: 11px; color: var(--text-dim);
+  letter-spacing: 0.03em; display: flex; align-items: center; gap: 6px;
+}
+#status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); transition: background 0.3s; }
+#status-dot.saving { background: #ef9f27; }
+#status-dot.saved { background: var(--accent2); }
+#status-dot.error { background: #e24b4a; }
+#status-dot.flash { animation: statusFlash 0.6s ease; }
+@keyframes statusFlash { 0%{box-shadow:0 0 0 0 rgba(93,202,165,0.8)} 50%{box-shadow:0 0 0 8px rgba(93,202,165,0)} 100%{box-shadow:0 0 0 0 rgba(93,202,165,0)} }
+#hint-bar { padding: 5px 16px; font-size: 10px; color: var(--text-dim); border-bottom: 1px solid var(--border); background: var(--surface); letter-spacing: 0.04em; flex-shrink: 0; }
+#canvas-wrap { flex: 1; position: relative; overflow: hidden; }
+canvas { display: block; width: 100%; height: 100%; }
+#tooltip {
+  position: absolute; font-size: 10px; font-family: var(--font);
+  padding: 4px 8px; background: var(--surface); border: 1px solid var(--border2);
+  border-radius: 3px; color: var(--text-muted); pointer-events: none; display: none; letter-spacing: 0.03em;
+}
+#loading {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  flex-direction: column; gap: 12px; font-size: 12px; color: var(--text-dim);
+  letter-spacing: 0.06em; z-index: 100; transition: opacity 0.4s;
+}
+#loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
 
-  :root {
-    --bg: #0e0e0e;
-    --surface: #161616;
-    --border: #2a2a2a;
-    --border2: #333;
-    --text: #c8c8c8;
-    --text-dim: #555;
-    --text-muted: #888;
-    --accent: #7f77dd;
-    --accent2: #5dcaa5;
-    --node: #3a3a3a;
-    --node-sel: #7f77dd;
-    --node-hub: #534ab7;
-    --edge: #2e2e2e;
-    --font: 'IBM Plex Mono', monospace;
-  }
+/* CATEGORY SELECT */
+#cat-select {
+  font-family: var(--font); font-size: 11px; padding: 6px 10px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text-muted); outline: none; cursor: pointer;
+}
+#cat-select:focus { border-color: var(--accent); }
 
-  html, body { width: 100%; height: 100%; background: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; }
+/* JOURNAL PANEL */
+#journal-panel {
+  position: fixed; right: 0; top: 0; bottom: 0; width: 300px;
+  background: var(--surface); border-left: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 50;
+  transform: translateX(100%); transition: transform 0.2s ease;
+}
+#journal-panel.open { transform: translateX(0); }
+#journal-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0; }
+#journal-node-name { font-size: 12px; color: var(--accent); letter-spacing: 0.06em; }
+#journal-close { font-family: var(--font); font-size: 11px; background: transparent; border: none; color: var(--text-dim); cursor: pointer; padding: 2px 6px; }
+#journal-close:hover { color: var(--text); }
+#journal-entries { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+#journal-entries::-webkit-scrollbar { width: 4px; }
+#journal-entries::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.journal-entry { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 10px 12px; display: flex; flex-direction: column; gap: 4px; }
+.journal-entry-date { font-size: 9px; color: var(--text-dim); letter-spacing: 0.06em; }
+.journal-entry-text { font-size: 11px; color: var(--text); line-height: 1.5; }
+#journal-input-wrap { padding: 12px 16px; border-top: 1px solid var(--border); flex-shrink: 0; display: flex; flex-direction: column; gap: 8px; }
+#journal-input { font-family: var(--font); font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 8px 10px; outline: none; resize: none; height: 72px; line-height: 1.5; }
+#journal-input:focus { border-color: var(--accent); }
+#journal-input::placeholder { color: var(--text-dim); }
+#journal-save { font-family: var(--font); font-size: 11px; background: transparent; border: 1px solid var(--accent); border-radius: 4px; color: var(--accent); padding: 6px; cursor: pointer; letter-spacing: 0.04em; }
+#journal-save:hover { background: #1e1b40; }
 
-  #app { width: 100vw; height: 100vh; display: flex; flex-direction: column; }
+/* SPOTLIGHT */
+#spotlight-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 18vh; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.15s ease;
+}
+#spotlight-overlay.open { opacity: 1; pointer-events: all; }
+#spotlight-box { width: 540px; max-width: 90vw; background: #1a1a1a; border: 1px solid #3a3a3a; border-radius: 12px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.7); }
+#spotlight-input-wrap { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid var(--border); }
+#spotlight-icon { font-size: 14px; color: var(--text-dim); }
+#spotlight-input { flex: 1; font-family: var(--font); font-size: 14px; background: transparent; border: none; color: var(--text); outline: none; letter-spacing: 0.02em; }
+#spotlight-input::placeholder { color: var(--text-dim); }
+#spotlight-esc { font-size: 10px; color: var(--text-dim); letter-spacing: 0.06em; }
+#spotlight-results { max-height: 320px; overflow-y: auto; padding: 6px 0; }
+#spotlight-results::-webkit-scrollbar { width: 4px; }
+#spotlight-results::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.sp-result { padding: 10px 18px; cursor: pointer; display: flex; flex-direction: column; gap: 3px; transition: background 0.1s; }
+.sp-result:hover, .sp-result.active { background: #252525; }
+.sp-result-node { font-size: 12px; color: var(--accent); letter-spacing: 0.04em; }
+.sp-result-snippet { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
+.sp-result-snippet mark { background: transparent; color: var(--accent2); font-style: normal; }
+.sp-empty { padding: 20px 18px; font-size: 11px; color: var(--text-dim); text-align: center; letter-spacing: 0.04em; }
 
-  #topbar {
-    display: flex; align-items: center; gap: 12px;
-    padding: 10px 16px;
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    flex-shrink: 0;
-    flex-wrap: wrap;
-  }
+/* COMMAND PALETTE */
+#cmd-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding-top: 15vh; z-index: 400; opacity: 0; pointer-events: none; transition: opacity 0.15s ease;
+}
+#cmd-overlay.open { opacity: 1; pointer-events: all; }
+#cmd-box { width: 480px; max-width: 90vw; background: #1a1a1a; border: 1px solid #3a3a3a; border-radius: 10px; overflow: hidden; box-shadow: 0 24px 60px rgba(0,0,0,0.8); }
+#cmd-header { padding: 12px 16px; border-bottom: 1px solid var(--border); font-size: 10px; color: var(--text-dim); letter-spacing: 0.1em; }
+#cmd-list { padding: 6px 0; }
+.cmd-item {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; cursor: pointer; transition: background 0.1s;
+}
+.cmd-item:hover, .cmd-item.active { background: #252525; }
+.cmd-item-left { display: flex; align-items: center; gap: 10px; }
+.cmd-item-icon { font-size: 13px; width: 18px; text-align: center; color: var(--text-muted); }
+.cmd-item-label { font-size: 12px; color: var(--text); letter-spacing: 0.03em; }
+.cmd-item-key { font-size: 10px; color: var(--text-dim); letter-spacing: 0.06em; background: #222; border: 1px solid var(--border); border-radius: 3px; padding: 2px 6px; }
 
-  #logo { font-size: 13px; font-weight: 500; color: var(--accent); letter-spacing: 0.08em; margin-right: 8px; }
+/* NODE QUICK EDIT */
+#node-edit-input {
+  position: fixed; background: var(--surface); border: 1px solid var(--accent);
+  color: var(--text); font-family: var(--font); font-size: 12px;
+  padding: 4px 8px; border-radius: 4px; outline: none;
+  z-index: 100; display: none; letter-spacing: 0.03em; min-width: 100px; text-align: center;
+}
 
-  #topbar input {
-    font-family: var(--font);
-    font-size: 12px;
-    padding: 6px 12px;
-    background: var(--bg);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text);
-    outline: none;
-    width: 180px;
-    transition: border 0.15s;
-  }
-  #topbar input:focus { border-color: var(--accent); }
-  #topbar input::placeholder { color: var(--text-dim); }
-
-  .btn {
-    font-family: var(--font);
-    font-size: 11px;
-    padding: 6px 14px;
-    background: transparent;
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: all 0.15s;
-    letter-spacing: 0.04em;
-    white-space: nowrap;
-  }
-  .btn:hover { border-color: var(--border2); color: var(--text); }
-  .btn.active { border-color: var(--accent2); color: var(--accent2); }
-  .btn.danger:hover { border-color: #e24b4a; color: #e24b4a; }
-
-  #status {
-    margin-left: auto;
-    font-size: 11px;
-    color: var(--text-dim);
-    letter-spacing: 0.03em;
-    display: flex; align-items: center; gap: 6px;
-  }
-  #status-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--text-dim);
-    transition: background 0.3s;
-  }
-  #status-dot.saving { background: #ef9f27; }
-  #status-dot.saved { background: var(--accent2); }
-  #status-dot.error { background: #e24b4a; }
-
-  #hint-bar {
-    padding: 5px 16px;
-    font-size: 10px;
-    color: var(--text-dim);
-    border-bottom: 1px solid var(--border);
-    background: var(--surface);
-    letter-spacing: 0.04em;
-    flex-shrink: 0;
-  }
-
-  #canvas-wrap { flex: 1; position: relative; overflow: hidden; }
-  canvas { display: block; width: 100%; height: 100%; }
-
-  #tooltip {
-    position: absolute;
-    font-size: 10px;
-    font-family: var(--font);
-    padding: 4px 8px;
-    background: var(--surface);
-    border: 1px solid var(--border2);
-    border-radius: 3px;
-    color: var(--text-muted);
-    pointer-events: none;
-    display: none;
-    letter-spacing: 0.03em;
-  }
-
-  #loading {
-    position: fixed; inset: 0;
-    background: var(--bg);
-    display: flex; align-items: center; justify-content: center;
-    flex-direction: column; gap: 12px;
-    font-size: 12px; color: var(--text-dim);
-    letter-spacing: 0.06em;
-    z-index: 100;
-    transition: opacity 0.4s;
-  }
-  #loading-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: pulse 1s infinite; }
-  @keyframes pulse { 0%,100%{opacity:0.3} 50%{opacity:1} }
-
-  /* ── CATEGORY SELECT IN TOPBAR ── */
-  #cat-select {
-    font-family: var(--font); font-size: 11px;
-    padding: 6px 10px; background: var(--bg);
-    border: 1px solid var(--border); border-radius: 4px;
-    color: var(--text-muted); outline: none; cursor: pointer;
-  }
-  #cat-select:focus { border-color: var(--accent); }
-
-  /* ── NODE JOURNAL PANEL ── */
-  #journal-panel {
-    position: fixed; right: 0; top: 0; bottom: 0;
-    width: 300px; background: var(--surface);
-    border-left: 1px solid var(--border);
-    display: flex; flex-direction: column;
-    z-index: 50; transform: translateX(100%);
-    transition: transform 0.2s ease;
-  }
-  #journal-panel.open { transform: translateX(0); }
-  #journal-header {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 16px; border-bottom: 1px solid var(--border);
-    flex-shrink: 0;
-  }
-  #journal-node-name { font-size: 12px; color: var(--accent); letter-spacing: 0.06em; }
-  #journal-close {
-    font-family: var(--font); font-size: 11px; background: transparent;
-    border: none; color: var(--text-dim); cursor: pointer; padding: 2px 6px;
-  }
-  #journal-close:hover { color: var(--text); }
-  #journal-entries {
-    flex: 1; overflow-y: auto; padding: 12px 16px;
-    display: flex; flex-direction: column; gap: 10px;
-  }
-  #journal-entries::-webkit-scrollbar { width: 4px; }
-  #journal-entries::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-  .journal-entry {
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 4px; padding: 10px 12px;
-    display: flex; flex-direction: column; gap: 4px;
-  }
-  .journal-entry-date { font-size: 9px; color: var(--text-dim); letter-spacing: 0.06em; }
-  .journal-entry-text { font-size: 11px; color: var(--text); line-height: 1.5; }
-  #journal-input-wrap {
-    padding: 12px 16px; border-top: 1px solid var(--border); flex-shrink: 0;
-    display: flex; flex-direction: column; gap: 8px;
-  }
-  #journal-input {
-    font-family: var(--font); font-size: 11px;
-    background: var(--bg); border: 1px solid var(--border);
-    border-radius: 4px; color: var(--text); padding: 8px 10px;
-    outline: none; resize: none; height: 72px; line-height: 1.5;
-  }
-  #journal-input:focus { border-color: var(--accent); }
-  #journal-input::placeholder { color: var(--text-dim); }
-  #journal-save {
-    font-family: var(--font); font-size: 11px;
-    background: transparent; border: 1px solid var(--accent);
-    border-radius: 4px; color: var(--accent);
-    padding: 6px; cursor: pointer; letter-spacing: 0.04em;
-  }
-  #journal-save:hover { background: #1e1b40; }
-
-  /* ── SPOTLIGHT SEARCH ── */
-  #spotlight-overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
-    display: flex; align-items: flex-start; justify-content: center;
-    padding-top: 18vh; z-index: 300;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.15s ease;
-  }
-  #spotlight-overlay.open { opacity: 1; pointer-events: all; }
-  #spotlight-box {
-    width: 540px; max-width: 90vw;
-    background: #1a1a1a; border: 1px solid #3a3a3a;
-    border-radius: 12px; overflow: hidden;
-    box-shadow: 0 24px 60px rgba(0,0,0,0.7);
-  }
-  #spotlight-input-wrap {
-    display: flex; align-items: center; gap: 10px;
-    padding: 14px 18px; border-bottom: 1px solid var(--border);
-  }
-  #spotlight-icon { font-size: 14px; color: var(--text-dim); }
-  #spotlight-input {
-    flex: 1; font-family: var(--font); font-size: 14px;
-    background: transparent; border: none; color: var(--text);
-    outline: none; letter-spacing: 0.02em;
-  }
-  #spotlight-input::placeholder { color: var(--text-dim); }
-  #spotlight-esc { font-size: 10px; color: var(--text-dim); letter-spacing: 0.06em; }
-  #spotlight-results {
-    max-height: 320px; overflow-y: auto;
-    padding: 6px 0;
-  }
-  #spotlight-results::-webkit-scrollbar { width: 4px; }
-  #spotlight-results::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
-  .sp-result {
-    padding: 10px 18px; cursor: pointer;
-    display: flex; flex-direction: column; gap: 3px;
-    transition: background 0.1s;
-  }
-  .sp-result:hover, .sp-result.active { background: #252525; }
-  .sp-result-node { font-size: 12px; color: var(--accent); letter-spacing: 0.04em; }
-  .sp-result-snippet { font-size: 11px; color: var(--text-muted); line-height: 1.4; }
-  .sp-result-snippet mark { background: transparent; color: var(--accent2); font-style: normal; }
-  .sp-empty { padding: 20px 18px; font-size: 11px; color: var(--text-dim); text-align: center; letter-spacing: 0.04em; }
+/* MINI-MAP */
+#minimap {
+  position: fixed; bottom: 16px; right: 16px;
+  width: 140px; height: 90px;
+  background: rgba(22,22,22,0.85); border: 1px solid var(--border);
+  border-radius: 6px; overflow: hidden; z-index: 40;
+  backdrop-filter: blur(4px);
+}
+#minimap canvas { display: block; width: 100%; height: 100%; }
 </style>
 </head>
 <body>
+
 <div id="pass-overlay">
-  <span style="font-size: 11px; color: var(--accent); letter-spacing: 0.2em;">RESTRICTED ACCESS</span>
-  <input type="password" id="pass-input" placeholder="••••••" autofocus />
+  <span style="font-size:11px;color:var(--accent);letter-spacing:0.2em;">RESTRICTED ACCESS</span>
+  <input type="password" id="pass-input" placeholder="••••••" autofocus/>
 </div>
 
-<div id="loading">
-  <div id="loading-dot"></div>
-  <span>loading graph...</span>
-</div>
+<div id="loading"><div id="loading-dot"></div><span>loading graph...</span></div>
 
 <div id="app">
   <div id="topbar">
     <span id="logo">Rigel</span>
     <input id="node-input" placeholder="new node..." maxlength="30"/>
-    <!-- CATEGORY SELECT -->
     <select id="cat-select">
       <option value="default">· no category</option>
       <option value="work">◆ work</option>
@@ -278,19 +198,17 @@
     <button class="btn" id="btn-connect">connect</button>
     <button class="btn danger" id="btn-delete">delete</button>
     <button class="btn" id="btn-search">⌕ search</button>
-    <div id="status">
-      <div id="status-dot"></div>
-      <span id="status-text">ready</span>
-    </div>
+    <button class="btn" id="btn-cmd">⌘ commands</button>
+    <div id="status"><div id="status-dot"></div><span id="status-text">ready</span></div>
   </div>
-  <div id="hint-bar">drag · click to select · double-click to add · right-click node to open journal</div>
+  <div id="hint-bar">drag · click to select · double-click canvas to add · double-click node to rename · right-click node for journal</div>
   <div id="canvas-wrap">
     <canvas id="c"></canvas>
     <div id="tooltip"></div>
   </div>
 </div>
 
-<!-- NODE JOURNAL PANEL -->
+<!-- JOURNAL PANEL -->
 <div id="journal-panel">
   <div id="journal-header">
     <span id="journal-node-name"></span>
@@ -303,7 +221,7 @@
   </div>
 </div>
 
-<!-- SPOTLIGHT SEARCH -->
+<!-- SPOTLIGHT -->
 <div id="spotlight-overlay">
   <div id="spotlight-box">
     <div id="spotlight-input-wrap">
@@ -315,18 +233,28 @@
   </div>
 </div>
 
-<script>
-// --- PASSCODE CONFIG ---
-const PASSCODE = "883518";
+<!-- COMMAND PALETTE -->
+<div id="cmd-overlay">
+  <div id="cmd-box">
+    <div id="cmd-header">COMMAND PALETTE — press ESC to close</div>
+    <div id="cmd-list"></div>
+  </div>
+</div>
 
+<!-- NODE QUICK EDIT INPUT -->
+<input id="node-edit-input" maxlength="30"/>
+
+<!-- MINI-MAP -->
+<div id="minimap"><canvas id="minimap-canvas"></canvas></div>
+
+<script>
+const PASSCODE = "883518";
 const passOverlay = document.getElementById('pass-overlay');
 const passInput = document.getElementById('pass-input');
-
 passInput.addEventListener('input', () => {
   if (passInput.value === PASSCODE) {
     passOverlay.style.display = 'none';
-    const loading = document.getElementById('loading');
-    loading.style.display = 'flex';
+    document.getElementById('loading').style.display = 'flex';
     loadGraph();
   }
 });
@@ -343,54 +271,42 @@ const statusDot = document.getElementById('status-dot');
 const statusText = document.getElementById('status-text');
 const hintBar = document.getElementById('hint-bar');
 const loading = document.getElementById('loading');
+const mmCanvas = document.getElementById('minimap-canvas');
+const mmCtx = mmCanvas.getContext('2d');
 
 let nodes = [], edges = [], nextId = 1;
 let selected = null, connectMode = false, connectFrom = null;
 let dragging = null, dragOffX = 0, dragOffY = 0;
-let saveTimer = null;
-let journalNodeId = null;
+let saveTimer = null, journalNodeId = null;
+let focusMode = false, focusNodeId = null;
 
-// ── CATEGORY COLORS ──
-const CAT_COLORS = {
-  default: '#2e2e2e',
-  work:    '#1e3a5f',
-  personal:'#3b1f4e',
-  ideas:   '#1f3d2e',
-  people:  '#4e2e1a',
-};
-const CAT_STROKE = {
-  default: '#555',
-  work:    '#4a90d9',
-  personal:'#a855f7',
-  ideas:   '#5dcaa5',
-  people:  '#ef9f27',
-};
+const CAT_COLORS = { default:'#2e2e2e', work:'#1e3a5f', personal:'#3b1f4e', ideas:'#1f3d2e', people:'#4e2e1a' };
+const CAT_STROKE = { default:'#555', work:'#4a90d9', personal:'#a855f7', ideas:'#5dcaa5', people:'#ef9f27' };
 
-function setStatus(type, msg) {
-  statusDot.className = type;
-  statusText.textContent = msg;
+// ── HAPTIC FLASH ──
+function flashSave() {
+  statusDot.classList.remove('flash');
+  void statusDot.offsetWidth;
+  statusDot.classList.add('flash');
+  setTimeout(() => statusDot.classList.remove('flash'), 700);
 }
+
+function setStatus(type, msg) { statusDot.className = type; statusText.textContent = msg; }
 
 async function loadGraph() {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.main&select=nodes,edges`, { headers });
     const data = await res.json();
     if (data && data[0]) {
-      nodes = data[0].nodes || [];
-      edges = data[0].edges || [];
+      nodes = data[0].nodes || []; edges = data[0].edges || [];
       nextId = nodes.length ? Math.max(...nodes.map(n => n.id)) + 1 : 1;
       if (nodes.length === 0) seedDefault();
-    } else {
-      seedDefault();
-    }
+    } else { seedDefault(); }
     setStatus('saved', 'loaded');
-  } catch(e) {
-    setStatus('error', 'load failed');
-    seedDefault();
-  }
+  } catch(e) { setStatus('error', 'load failed'); seedDefault(); }
   loading.style.opacity = '0';
   setTimeout(() => loading.style.display = 'none', 400);
-  resize(); tick();
+  resize(); tick(); resizeMinimap();
 }
 
 function seedDefault() {
@@ -404,8 +320,7 @@ function seedDefault() {
     { id:6, x:cx, y:cy+170, label:'flask', r:12, vx:0, vy:0, cat:'default', journal:[] },
   ];
   edges = [[1,2],[1,3],[1,4],[1,5],[2,6],[5,6]];
-  nextId = 7;
-  scheduleSave();
+  nextId = 7; scheduleSave();
 }
 
 function scheduleSave() {
@@ -421,54 +336,69 @@ async function saveGraph() {
       method: 'PATCH', headers: { ...headers, 'Prefer': 'return=minimal' },
       body: JSON.stringify(payload)
     });
-    setStatus('saved', 'saved ✓');
-  } catch(e) {
-    setStatus('error', 'save failed');
-  }
+    setStatus('saved', 'saved ✓'); flashSave();
+  } catch(e) { setStatus('error', 'save failed'); }
 }
 
 function resize() {
   const rect = wrap.getBoundingClientRect();
-  canvas.width = rect.width * devicePixelRatio;
-  canvas.height = rect.height * devicePixelRatio;
-  canvas.style.width = rect.width + 'px';
-  canvas.style.height = rect.height + 'px';
+  canvas.width = rect.width * devicePixelRatio; canvas.height = rect.height * devicePixelRatio;
+  canvas.style.width = rect.width + 'px'; canvas.style.height = rect.height + 'px';
+}
+
+function resizeMinimap() {
+  const mm = document.getElementById('minimap');
+  const rect = mm.getBoundingClientRect();
+  mmCanvas.width = rect.width * devicePixelRatio; mmCanvas.height = rect.height * devicePixelRatio;
+  mmCanvas.style.width = rect.width + 'px'; mmCanvas.style.height = rect.height + 'px';
 }
 
 function countEdges(id) { return edges.filter(([a,b]) => a===id||b===id).length; }
+
+// ── NODE FOCUS MODE ──
+function getConnectedIds(nodeId) {
+  const connected = new Set([nodeId]);
+  edges.forEach(([a,b]) => { if (a===nodeId) connected.add(b); if (b===nodeId) connected.add(a); });
+  return connected;
+}
+
+function toggleFocus(nodeId) {
+  if (focusMode && focusNodeId === nodeId) { focusMode = false; focusNodeId = null; }
+  else { focusMode = true; focusNodeId = nodeId; }
+}
 
 function draw() {
   const dpr = devicePixelRatio;
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   ctx.save(); ctx.scale(dpr, dpr);
 
+  const focusSet = focusMode ? getConnectedIds(focusNodeId) : null;
+
   edges.forEach(([a,b]) => {
     const na = nodes.find(n=>n.id===a), nb = nodes.find(n=>n.id===b);
     if (!na||!nb) return;
+    const dimmed = focusSet && (!focusSet.has(a) || !focusSet.has(b));
     ctx.beginPath(); ctx.moveTo(na.x,na.y); ctx.lineTo(nb.x,nb.y);
-    ctx.strokeStyle = '#2e2e2e'; ctx.lineWidth = 1; ctx.stroke();
+    ctx.strokeStyle = dimmed ? '#1a1a1a' : '#2e2e2e'; ctx.lineWidth = 1; ctx.stroke();
   });
 
   nodes.forEach(n => {
-    const deg = countEdges(n.id);
-    const r = n.r + deg * 2;
+    const deg = countEdges(n.id), r = n.r + deg * 2;
     const isSel = selected===n.id, isCF = connectFrom===n.id;
     const cat = n.cat || 'default';
+    const dimmed = focusSet && !focusSet.has(n.id);
 
     let fill = n.id===1 ? '#534ab7' : CAT_COLORS[cat] || CAT_COLORS.default;
     if (isCF) fill = '#1d9e75';
     if (isSel && !isCF) fill = '#4a4280';
 
+    ctx.globalAlpha = dimmed ? 0.15 : 1;
     ctx.beginPath(); ctx.arc(n.x,n.y,r,0,Math.PI*2);
     ctx.fillStyle = fill; ctx.fill();
 
-    // category stroke ring
-    if (cat !== 'default' && !isSel && !isCF) {
-      ctx.strokeStyle = CAT_STROKE[cat]; ctx.lineWidth = 1.5; ctx.stroke();
-    }
+    if (cat !== 'default' && !isSel && !isCF) { ctx.strokeStyle = CAT_STROKE[cat]; ctx.lineWidth = 1.5; ctx.stroke(); }
     if (isSel || isCF) { ctx.strokeStyle = isCF ? '#5dcaa5' : '#7f77dd'; ctx.lineWidth = 1.5; ctx.stroke(); }
 
-    // journal indicator dot
     if (n.journal && n.journal.length > 0) {
       ctx.beginPath(); ctx.arc(n.x + r - 2, n.y - r + 2, 3, 0, Math.PI*2);
       ctx.fillStyle = '#ef9f27'; ctx.fill();
@@ -476,12 +406,50 @@ function draw() {
 
     const fs = r > 18 ? 12 : 10;
     ctx.font = `${fs}px 'IBM Plex Mono', monospace`;
-    ctx.fillStyle = isSel ? '#c8c8c8' : '#666';
+    ctx.fillStyle = dimmed ? '#333' : (isSel ? '#c8c8c8' : '#666');
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
     ctx.fillText(n.label, n.x, n.y - r - 9);
+    ctx.globalAlpha = 1;
   });
 
   ctx.restore();
+  drawMinimap();
+}
+
+// ── MINI-MAP ──
+function drawMinimap() {
+  if (!nodes.length) return;
+  const dpr = devicePixelRatio;
+  const mw = mmCanvas.width / dpr, mh = mmCanvas.height / dpr;
+  mmCtx.clearRect(0, 0, mmCanvas.width, mmCanvas.height);
+  mmCtx.save(); mmCtx.scale(dpr, dpr);
+
+  const xs = nodes.map(n=>n.x), ys = nodes.map(n=>n.y);
+  const minX = Math.min(...xs)-20, maxX = Math.max(...xs)+20;
+  const minY = Math.min(...ys)-20, maxY = Math.max(...ys)+20;
+  const scaleX = mw / (maxX - minX || 1), scaleY = mh / (maxY - minY || 1);
+  const scale = Math.min(scaleX, scaleY) * 0.9;
+  const offX = (mw - (maxX - minX) * scale) / 2 - minX * scale;
+  const offY = (mh - (maxY - minY) * scale) / 2 - minY * scale;
+
+  edges.forEach(([a,b]) => {
+    const na = nodes.find(n=>n.id===a), nb = nodes.find(n=>n.id===b);
+    if (!na||!nb) return;
+    mmCtx.beginPath();
+    mmCtx.moveTo(na.x * scale + offX, na.y * scale + offY);
+    mmCtx.lineTo(nb.x * scale + offX, nb.y * scale + offY);
+    mmCtx.strokeStyle = '#333'; mmCtx.lineWidth = 0.5; mmCtx.stroke();
+  });
+
+  nodes.forEach(n => {
+    const mx = n.x * scale + offX, my = n.y * scale + offY;
+    const cat = n.cat || 'default';
+    mmCtx.beginPath(); mmCtx.arc(mx, my, Math.max(2, (n.r * scale * 0.6)), 0, Math.PI*2);
+    mmCtx.fillStyle = n.id === selected ? '#7f77dd' : (CAT_STROKE[cat] || '#555');
+    mmCtx.fill();
+  });
+
+  mmCtx.restore();
 }
 
 function tick() {
@@ -514,71 +482,77 @@ function tick() {
 }
 
 function getNodeAt(x,y) {
-  return nodes.slice().reverse().find(n => {
-    const r = n.r + countEdges(n.id)*2;
-    return Math.hypot(n.x-x,n.y-y)<=r;
-  });
+  return nodes.slice().reverse().find(n => { const r = n.r + countEdges(n.id)*2; return Math.hypot(n.x-x,n.y-y)<=r; });
 }
-
 function getPos(e) {
-  const rect = canvas.getBoundingClientRect();
-  const src = e.touches ? e.touches[0] : e;
+  const rect = canvas.getBoundingClientRect(), src = e.touches ? e.touches[0] : e;
   return { x: src.clientX-rect.left, y: src.clientY-rect.top };
 }
 
 // ── JOURNAL ──
 function openJournal(nodeId) {
-  const n = nodes.find(n => n.id === nodeId);
-  if (!n) return;
+  const n = nodes.find(n => n.id === nodeId); if (!n) return;
   journalNodeId = nodeId;
   document.getElementById('journal-node-name').textContent = n.label;
   document.getElementById('journal-input').value = '';
   renderJournalEntries(n);
   document.getElementById('journal-panel').classList.add('open');
 }
-
 function renderJournalEntries(n) {
   const el = document.getElementById('journal-entries');
-  if (!n.journal || n.journal.length === 0) {
-    el.innerHTML = '<div style="font-size:11px;color:var(--text-dim);text-align:center;padding-top:20px;">no entries yet</div>';
-    return;
-  }
-  el.innerHTML = n.journal.slice().reverse().map(e => `
-    <div class="journal-entry">
-      <div class="journal-entry-date">${e.date}</div>
-      <div class="journal-entry-text">${e.text}</div>
-    </div>
-  `).join('');
+  if (!n.journal || n.journal.length === 0) { el.innerHTML = '<div style="font-size:11px;color:var(--text-dim);text-align:center;padding-top:20px;">no entries yet</div>'; return; }
+  el.innerHTML = n.journal.slice().reverse().map(e => `<div class="journal-entry"><div class="journal-entry-date">${e.date}</div><div class="journal-entry-text">${e.text}</div></div>`).join('');
 }
-
-document.getElementById('journal-close').addEventListener('click', () => {
-  document.getElementById('journal-panel').classList.remove('open');
-  journalNodeId = null;
-});
-
+document.getElementById('journal-close').addEventListener('click', () => { document.getElementById('journal-panel').classList.remove('open'); journalNodeId = null; });
 document.getElementById('journal-save').addEventListener('click', () => {
   const text = document.getElementById('journal-input').value.trim();
   if (!text || journalNodeId === null) return;
-  const n = nodes.find(n => n.id === journalNodeId);
-  if (!n) return;
+  const n = nodes.find(n => n.id === journalNodeId); if (!n) return;
   if (!n.journal) n.journal = [];
   const now = new Date();
   const date = now.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
   n.journal.push({ date, text });
   document.getElementById('journal-input').value = '';
-  renderJournalEntries(n);
-  scheduleSave();
+  renderJournalEntries(n); scheduleSave();
 });
+document.getElementById('journal-input').addEventListener('keydown', e => { if (e.key==='Enter'&&e.ctrlKey) document.getElementById('journal-save').click(); });
 
-// ctrl+enter to save journal
-document.getElementById('journal-input').addEventListener('keydown', e => {
-  if (e.key === 'Enter' && e.ctrlKey) document.getElementById('journal-save').click();
+// ── NODE QUICK EDIT ──
+const nodeEditInput = document.getElementById('node-edit-input');
+let editingNodeId = null;
+
+function startEdit(nodeId) {
+  const n = nodes.find(n => n.id === nodeId); if (!n) return;
+  editingNodeId = nodeId;
+  const rect = canvas.getBoundingClientRect();
+  const deg = countEdges(nodeId), r = n.r + deg * 2;
+  nodeEditInput.style.display = 'block';
+  nodeEditInput.style.left = (rect.left + n.x - 50) + 'px';
+  nodeEditInput.style.top = (rect.top + n.y - r - 30) + 'px';
+  nodeEditInput.value = n.label;
+  nodeEditInput.focus(); nodeEditInput.select();
+}
+
+function commitEdit() {
+  const val = nodeEditInput.value.trim();
+  if (val && editingNodeId !== null) {
+    const n = nodes.find(n => n.id === editingNodeId);
+    if (n) { n.label = val; scheduleSave(); }
+  }
+  nodeEditInput.style.display = 'none'; editingNodeId = null;
+}
+
+nodeEditInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter') { e.preventDefault(); commitEdit(); }
+  if (e.key === 'Escape') { nodeEditInput.style.display = 'none'; editingNodeId = null; }
 });
+nodeEditInput.addEventListener('blur', commitEdit);
 
+// ── CANVAS EVENTS ──
 canvas.addEventListener('dblclick', e => {
-  const {x,y} = getPos(e);
-  const n = getNodeAt(x,y);
-  if (!n) {
+  const {x,y} = getPos(e), n = getNodeAt(x,y);
+  if (n) { startEdit(n.id); }
+  else {
     const label = prompt('node name:');
     if (!label || !label.trim()) return;
     const cat = document.getElementById('cat-select').value;
@@ -587,17 +561,15 @@ canvas.addEventListener('dblclick', e => {
   }
 });
 
-// right-click to open journal
 canvas.addEventListener('contextmenu', e => {
   e.preventDefault();
-  const {x,y} = getPos(e);
-  const n = getNodeAt(x,y);
+  const {x,y} = getPos(e), n = getNodeAt(x,y);
   if (n) openJournal(n.id);
 });
 
+let lastClickTime = 0, lastClickNode = null;
 canvas.addEventListener('mousedown', e => {
-  const {x,y} = getPos(e);
-  const n = getNodeAt(x,y);
+  const {x,y} = getPos(e), n = getNodeAt(x,y);
   if (connectMode) {
     if (n) {
       if (!connectFrom) { connectFrom = n.id; }
@@ -609,33 +581,28 @@ canvas.addEventListener('mousedown', e => {
     } else { connectFrom = null; }
     return;
   }
-  if (n) { selected=n.id; dragging=n.id; dragOffX=x-n.x; dragOffY=y-n.y; }
-  else { selected=null; }
+  // single click — select + check for focus toggle (alt+click)
+  if (n) {
+    selected = n.id; dragging = n.id; dragOffX = x-n.x; dragOffY = y-n.y;
+    if (e.altKey) toggleFocus(n.id);
+  } else { selected = null; if (focusMode) { focusMode = false; focusNodeId = null; } }
 });
 
 canvas.addEventListener('mousemove', e => {
   const {x,y} = getPos(e);
-  if (dragging) {
-    const n = nodes.find(n=>n.id===dragging);
-    if (n) { n.x=x-dragOffX; n.y=y-dragOffY; }
-  }
-  const tt = document.getElementById('tooltip');
-  const n = getNodeAt(x,y);
+  if (dragging) { const n = nodes.find(n=>n.id===dragging); if (n) { n.x=x-dragOffX; n.y=y-dragOffY; } }
+  const tt = document.getElementById('tooltip'), n = getNodeAt(x,y);
   if (n) {
     tt.style.display='block'; tt.style.left=(x+14)+'px'; tt.style.top=(y-22)+'px';
-    tt.textContent=`${n.label} · ${countEdges(n.id)} links${n.journal&&n.journal.length ? ' · '+n.journal.length+' notes' : ''}`;
+    tt.textContent=`${n.label} · ${countEdges(n.id)} links${n.journal&&n.journal.length?' · '+n.journal.length+' notes':''}`;
   } else { tt.style.display='none'; }
 });
 
-canvas.addEventListener('mouseup', () => {
-  if (dragging) scheduleSave();
-  dragging=null;
-});
+canvas.addEventListener('mouseup', () => { if (dragging) scheduleSave(); dragging=null; });
 canvas.addEventListener('mouseleave', () => { dragging=null; });
 
 document.getElementById('btn-add').addEventListener('click', () => {
-  const input = document.getElementById('node-input');
-  const label = input.value.trim();
+  const input = document.getElementById('node-input'), label = input.value.trim();
   if (!label) return;
   const cx=wrap.clientWidth/2, cy=wrap.clientHeight/2;
   const cat = document.getElementById('cat-select').value;
@@ -643,14 +610,12 @@ document.getElementById('btn-add').addEventListener('click', () => {
   input.value=''; scheduleSave();
 });
 
-document.getElementById('node-input').addEventListener('keydown', e => {
-  if (e.key==='Enter') document.getElementById('btn-add').click();
-});
+document.getElementById('node-input').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('btn-add').click(); });
 
 document.getElementById('btn-connect').addEventListener('click', () => {
   connectMode=!connectMode; connectFrom=null;
   document.getElementById('btn-connect').classList.toggle('active',connectMode);
-  hintBar.textContent = connectMode ? 'connect mode: click first node, then second node to link them' : 'drag · click to select · double-click to add · right-click node to open journal';
+  hintBar.textContent = connectMode ? 'connect mode: click first node, then second node to link them' : 'drag · click to select · double-click canvas to add · double-click node to rename · right-click node for journal';
 });
 
 document.getElementById('btn-delete').addEventListener('click', () => {
@@ -661,112 +626,90 @@ document.getElementById('btn-delete').addEventListener('click', () => {
   selected=null; scheduleSave();
 });
 
-// ── SPOTLIGHT SEARCH ──
+// ── SPOTLIGHT ──
 const spotlightOverlay = document.getElementById('spotlight-overlay');
 const spotlightInput = document.getElementById('spotlight-input');
 const spotlightResults = document.getElementById('spotlight-results');
 let spActiveIdx = -1;
 
-function openSpotlight() {
-  spotlightOverlay.classList.add('open');
-  spotlightInput.value = '';
-  spotlightResults.innerHTML = '';
-  spActiveIdx = -1;
-  setTimeout(() => spotlightInput.focus(), 50);
-}
-function closeSpotlight() {
-  spotlightOverlay.classList.remove('open');
-}
-
+function openSpotlight() { spotlightOverlay.classList.add('open'); spotlightInput.value=''; spotlightResults.innerHTML=''; spActiveIdx=-1; setTimeout(()=>spotlightInput.focus(),50); }
+function closeSpotlight() { spotlightOverlay.classList.remove('open'); }
 function highlight(text, query) {
   if (!query) return text;
   const re = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`, 'gi');
-  return text.replace(re, '<mark>$1</mark>');
+  return text.replace(re,'<mark>$1</mark>');
 }
-
 function runSearch(q) {
-  spActiveIdx = -1;
-  if (!q.trim()) { spotlightResults.innerHTML = ''; return; }
-  const ql = q.toLowerCase();
-  const results = [];
+  spActiveIdx=-1;
+  if (!q.trim()) { spotlightResults.innerHTML=''; return; }
+  const ql=q.toLowerCase(), results=[];
   nodes.forEach(n => {
-    // match node label
-    if (n.label.toLowerCase().includes(ql)) {
-      results.push({ nodeId: n.id, nodeLabel: n.label, snippet: null });
-    }
-    // match journal entries
-    (n.journal || []).forEach(e => {
-      if (e.text.toLowerCase().includes(ql)) {
-        results.push({ nodeId: n.id, nodeLabel: n.label, snippet: e.text, date: e.date });
-      }
-    });
+    if (n.label.toLowerCase().includes(ql)) results.push({ nodeId:n.id, nodeLabel:n.label, snippet:null });
+    (n.journal||[]).forEach(e => { if (e.text.toLowerCase().includes(ql)) results.push({ nodeId:n.id, nodeLabel:n.label, snippet:e.text, date:e.date }); });
   });
-
-  if (!results.length) {
-    spotlightResults.innerHTML = '<div class="sp-empty">no results found</div>';
-    return;
-  }
-
-  spotlightResults.innerHTML = results.map((r, i) => `
-    <div class="sp-result" data-id="${r.nodeId}" data-i="${i}">
-      <div class="sp-result-node">${highlight(r.nodeLabel, q)}${r.snippet ? ' · <span style="color:var(--text-dim);font-size:10px;">' + r.date + '</span>' : ''}</div>
-      ${r.snippet ? `<div class="sp-result-snippet">${highlight(r.snippet, q)}</div>` : ''}
-    </div>
-  `).join('');
-
+  if (!results.length) { spotlightResults.innerHTML='<div class="sp-empty">no results found</div>'; return; }
+  spotlightResults.innerHTML = results.map((r,i) => `<div class="sp-result" data-id="${r.nodeId}" data-i="${i}"><div class="sp-result-node">${highlight(r.nodeLabel,q)}${r.snippet?' · <span style="color:var(--text-dim);font-size:10px;">'+r.date+'</span>':''}</div>${r.snippet?`<div class="sp-result-snippet">${highlight(r.snippet,q)}</div>`:''}</div>`).join('');
   spotlightResults.querySelectorAll('.sp-result').forEach(el => {
-    el.addEventListener('click', () => {
-      const nodeId = parseInt(el.dataset.id);
-      closeSpotlight();
-      selected = nodeId;
-      openJournal(nodeId);
-    });
+    el.addEventListener('click', () => { const nodeId=parseInt(el.dataset.id); closeSpotlight(); selected=nodeId; openJournal(nodeId); });
   });
 }
-
 spotlightInput.addEventListener('input', e => runSearch(e.target.value));
-
 spotlightInput.addEventListener('keydown', e => {
   const items = spotlightResults.querySelectorAll('.sp-result');
-  if (e.key === 'ArrowDown') {
-    e.preventDefault();
-    spActiveIdx = Math.min(spActiveIdx + 1, items.length - 1);
-    items.forEach((el, i) => el.classList.toggle('active', i === spActiveIdx));
-  } else if (e.key === 'ArrowUp') {
-    e.preventDefault();
-    spActiveIdx = Math.max(spActiveIdx - 1, 0);
-    items.forEach((el, i) => el.classList.toggle('active', i === spActiveIdx));
-  } else if (e.key === 'Enter' && spActiveIdx >= 0) {
-    items[spActiveIdx]?.click();
-  } else if (e.key === 'Escape') {
-    closeSpotlight();
-  }
+  if (e.key==='ArrowDown') { e.preventDefault(); spActiveIdx=Math.min(spActiveIdx+1,items.length-1); items.forEach((el,i)=>el.classList.toggle('active',i===spActiveIdx)); }
+  else if (e.key==='ArrowUp') { e.preventDefault(); spActiveIdx=Math.max(spActiveIdx-1,0); items.forEach((el,i)=>el.classList.toggle('active',i===spActiveIdx)); }
+  else if (e.key==='Enter'&&spActiveIdx>=0) { items[spActiveIdx]?.click(); }
+  else if (e.key==='Escape') { closeSpotlight(); }
 });
-
-spotlightOverlay.addEventListener('mousedown', e => {
-  if (e.target === spotlightOverlay) closeSpotlight();
-});
-
+spotlightOverlay.addEventListener('mousedown', e => { if (e.target===spotlightOverlay) closeSpotlight(); });
 document.getElementById('btn-search').addEventListener('click', openSpotlight);
-
-// triple-tap / triple-click to open spotlight
 let clickTimes = [];
 document.addEventListener('click', e => {
-  // ignore clicks inside spotlight or topbar inputs
-  if (e.target.closest('#spotlight-overlay') || e.target.closest('#topbar')) return;
+  if (e.target.closest('#spotlight-overlay')||e.target.closest('#topbar')) return;
   const now = Date.now();
-  clickTimes = clickTimes.filter(t => now - t < 600);
-  clickTimes.push(now);
-  if (clickTimes.length >= 3) { clickTimes = []; openSpotlight(); }
+  clickTimes = clickTimes.filter(t=>now-t<600); clickTimes.push(now);
+  if (clickTimes.length>=3) { clickTimes=[]; openSpotlight(); }
 });
 
-// keyboard shortcut: Cmd+K or Ctrl+K
+// ── COMMAND PALETTE ──
+const cmdOverlay = document.getElementById('cmd-overlay');
+const commands = [
+  { icon:'⌕', label:'Search nodes & journal', key:'Ctrl+K', fn: openSpotlight },
+  { icon:'＋', label:'Add new node', key:'type + enter', fn: ()=>{ closeCmdPalette(); document.getElementById('node-input').focus(); } },
+  { icon:'⟳', label:'Connect mode', key:'', fn: ()=>{ closeCmdPalette(); document.getElementById('btn-connect').click(); } },
+  { icon:'✕', label:'Delete selected node', key:'', fn: ()=>{ closeCmdPalette(); document.getElementById('btn-delete').click(); } },
+  { icon:'◎', label:'Focus mode (alt+click node)', key:'Alt+Click', fn: ()=>{ closeCmdPalette(); } },
+  { icon:'✎', label:'Rename node (double-click)', key:'DblClick', fn: ()=>{ closeCmdPalette(); } },
+  { icon:'📓', label:'Open node journal (right-click)', key:'RClick', fn: ()=>{ closeCmdPalette(); } },
+  { icon:'⌘', label:'Command palette', key:'Ctrl+P', fn: ()=>{ closeCmdPalette(); } },
+];
+
+function openCmdPalette() {
+  const list = document.getElementById('cmd-list');
+  list.innerHTML = commands.map((c,i) => `
+    <div class="cmd-item" data-i="${i}">
+      <div class="cmd-item-left">
+        <span class="cmd-item-icon">${c.icon}</span>
+        <span class="cmd-item-label">${c.label}</span>
+      </div>
+      ${c.key ? `<span class="cmd-item-key">${c.key}</span>` : ''}
+    </div>
+  `).join('');
+  list.querySelectorAll('.cmd-item').forEach((el,i) => { el.addEventListener('click', () => commands[i].fn()); });
+  cmdOverlay.classList.add('open');
+}
+function closeCmdPalette() { cmdOverlay.classList.remove('open'); }
+cmdOverlay.addEventListener('mousedown', e => { if (e.target===cmdOverlay) closeCmdPalette(); });
+document.getElementById('btn-cmd').addEventListener('click', openCmdPalette);
+
+// ── GLOBAL KEYBOARD SHORTCUTS ──
 document.addEventListener('keydown', e => {
-  if ((e.metaKey || e.ctrlKey) && e.key === 'k') { e.preventDefault(); openSpotlight(); }
-  if (e.key === 'Escape') closeSpotlight();
+  if ((e.metaKey||e.ctrlKey) && e.key==='k') { e.preventDefault(); openSpotlight(); }
+  if ((e.metaKey||e.ctrlKey) && e.key==='p') { e.preventDefault(); openCmdPalette(); }
+  if (e.key==='Escape') { closeSpotlight(); closeCmdPalette(); focusMode=false; focusNodeId=null; }
 });
 
-window.addEventListener('resize', resize);
+window.addEventListener('resize', () => { resize(); resizeMinimap(); });
 loadGraph();
 </script>
 </body>
