@@ -172,6 +172,102 @@ canvas { display: block; width: 100%; height: 100%; }
   backdrop-filter: blur(4px);
 }
 #minimap canvas { display: block; width: 100%; height: 100%; }
+
+/* HABIT JOURNAL VIEW */
+#habit-view {
+  display: none; flex-direction: column; flex: 1; overflow: hidden;
+  background: var(--bg);
+}
+#habit-view.active { display: flex; }
+#app.habit-mode #graph-view { display: none; }
+#app.habit-mode #habit-view { display: flex; }
+#app.habit-mode #hint-bar { display: none; }
+#app.habit-mode #minimap { display: none; }
+
+#habit-body {
+  flex: 1; overflow-y: auto; padding: 24px 28px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+}
+#habit-body::-webkit-scrollbar { width: 4px; }
+#habit-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+.habit-section {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 8px; display: flex; flex-direction: column; overflow: hidden;
+}
+.habit-section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.habit-section-title { font-size: 11px; color: var(--accent); letter-spacing: 0.1em; }
+.habit-section-body { flex: 1; overflow-y: auto; padding: 12px 16px; display: flex; flex-direction: column; gap: 8px; }
+.habit-section-body::-webkit-scrollbar { width: 3px; }
+.habit-section-body::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+
+/* MEMORABLE MOMENTS */
+.moment-entry {
+  display: flex; gap: 8px; align-items: flex-start;
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 4px; padding: 8px 10px;
+}
+.moment-day { font-size: 10px; color: var(--accent2); min-width: 22px; letter-spacing: 0.04em; padding-top: 1px; }
+.moment-text { font-size: 11px; color: var(--text); line-height: 1.5; flex: 1; }
+.moment-del { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 11px; padding: 0 2px; flex-shrink: 0; }
+.moment-del:hover { color: #e24b4a; }
+.moment-input-row { display: flex; gap: 6px; align-items: center; flex-shrink: 0; padding-top: 4px; }
+.moment-input-row input[type=number] { width: 52px; font-family: var(--font); font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 5px 8px; outline: none; }
+.moment-input-row input[type=number]:focus { border-color: var(--accent); }
+.moment-input-row input[type=text] { flex: 1; font-family: var(--font); font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 5px 8px; outline: none; }
+.moment-input-row input[type=text]:focus { border-color: var(--accent); }
+.habit-add-btn { font-family: var(--font); font-size: 11px; background: transparent; border: 1px solid var(--border); border-radius: 4px; color: var(--text-muted); padding: 5px 10px; cursor: pointer; white-space: nowrap; }
+.habit-add-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* GOALS TRACKER - grid style */
+.goal-row { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 8px 10px; display: flex; flex-direction: column; gap: 6px; }
+.goal-row-header { display: flex; align-items: center; justify-content: space-between; }
+.goal-name { font-size: 11px; color: var(--text); letter-spacing: 0.03em; }
+.goal-del { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 11px; padding: 0 2px; }
+.goal-del:hover { color: #e24b4a; }
+.goal-days-grid { display: flex; flex-wrap: wrap; gap: 4px; }
+.day-cell {
+  width: 22px; height: 22px; border: 1px solid var(--border2);
+  border-radius: 3px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  font-size: 8px; color: var(--text-dim); background: transparent; transition: all 0.12s; position: relative;
+}
+.day-cell:hover { border-color: var(--accent2); color: var(--accent2); }
+.day-cell.crossed { background: #1f3d2e; border-color: var(--accent2); color: var(--accent2); font-size: 11px; }
+.goal-input-row { display: flex; gap: 6px; padding-top: 4px; flex-shrink: 0; }
+.goal-input-row input { flex: 1; font-family: var(--font); font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 5px 8px; outline: none; }
+.goal-input-row input:focus { border-color: var(--accent); }
+
+/* GRAPHS SECTION — full width */
+#graphs-section { grid-column: span 2; }
+.graph-block { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.graph-block-header { display: flex; align-items: center; justify-content: space-between; }
+.graph-block-title { font-size: 11px; color: var(--accent2); letter-spacing: 0.06em; }
+.graph-del-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 11px; }
+.graph-del-btn:hover { color: #e24b4a; }
+.graph-canvas-wrap { width: 100%; height: 160px; position: relative; }
+.graph-canvas-wrap canvas { width: 100%; height: 100%; }
+.graph-input-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.graph-input-row label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.04em; }
+.graph-input-row input[type=number] { width: 60px; font-family: var(--font); font-size: 11px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 4px 8px; outline: none; }
+.graph-input-row input[type=number]:focus { border-color: var(--accent); }
+.graph-input-row select { font-family: var(--font); font-size: 11px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--text-muted); padding: 4px 8px; outline: none; cursor: pointer; }
+.add-graph-btn { font-family: var(--font); font-size: 11px; background: transparent; border: 1px dashed var(--border2); border-radius: 6px; color: var(--text-dim); padding: 10px; cursor: pointer; width: 100%; letter-spacing: 0.06em; transition: all 0.15s; }
+.add-graph-btn:hover { border-color: var(--accent); color: var(--accent); }
+.new-graph-row { display: flex; gap: 8px; align-items: center; padding-top: 4px; }
+.new-graph-row input { flex: 1; font-family: var(--font); font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 5px 8px; outline: none; }
+.new-graph-row input:focus { border-color: var(--accent); }
+
+/* month picker */
+#habit-month-bar { display: flex; align-items: center; gap: 12px; padding: 10px 28px; border-bottom: 1px solid var(--border); background: var(--surface); flex-shrink: 0; flex-wrap: wrap; }
+#habit-month-bar label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.06em; }
+#habit-month-select { font-family: var(--font); font-size: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 4px 10px; outline: none; cursor: pointer; }
+#habit-month-select:focus { border-color: var(--accent); }
+#habit-year-select { font-family: var(--font); font-size: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 4px 10px; outline: none; cursor: pointer; }
+#habit-year-select:focus { border-color: var(--accent); }
+#habit-month-label { font-size: 12px; color: var(--accent); letter-spacing: 0.08em; }
 </style>
 </head>
 <body>
@@ -199,12 +295,72 @@ canvas { display: block; width: 100%; height: 100%; }
     <button class="btn danger" id="btn-delete">delete</button>
     <button class="btn" id="btn-search">⌕ search</button>
     <button class="btn" id="btn-cmd">⌘ commands</button>
+    <button class="btn" id="btn-habit">◫ habit journal</button>
     <div id="status"><div id="status-dot"></div><span id="status-text">ready</span></div>
   </div>
   <div id="hint-bar">drag · click to select · double-click canvas to add · double-click node to rename · right-click node for journal</div>
-  <div id="canvas-wrap">
+
+  <!-- GRAPH VIEW -->
+  <div id="graph-view" style="flex:1;display:flex;flex-direction:column;overflow:hidden;">
+  <div id="canvas-wrap" style="flex:1;position:relative;overflow:hidden;">
     <canvas id="c"></canvas>
     <div id="tooltip"></div>
+  </div>
+  </div>
+
+  <!-- HABIT JOURNAL VIEW -->
+  <div id="habit-view">
+    <div id="habit-month-bar">
+      <label>MONTH</label>
+      <select id="habit-month-select"></select>
+      <label>YEAR</label>
+      <select id="habit-year-select"></select>
+      <span id="habit-month-label"></span>
+    </div>
+    <div id="habit-body">
+      <!-- memorable moments -->
+      <div class="habit-section" id="moments-section">
+        <div class="habit-section-header">
+          <span class="habit-section-title">MEMORABLE MOMENTS</span>
+        </div>
+        <div class="habit-section-body" id="moments-list"></div>
+        <div style="padding:10px 16px;border-top:1px solid var(--border);flex-shrink:0;">
+          <div class="moment-input-row">
+            <input type="number" id="moment-day-input" min="1" max="31" placeholder="day"/>
+            <input type="text" id="moment-text-input" placeholder="what happened today..."/>
+            <button class="habit-add-btn" id="btn-add-moment">+ add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- goals tracker -->
+      <div class="habit-section" id="goals-section">
+        <div class="habit-section-header">
+          <span class="habit-section-title">DAILY GOALS</span>
+        </div>
+        <div class="habit-section-body" id="goals-list"></div>
+        <div style="padding:10px 16px;border-top:1px solid var(--border);flex-shrink:0;">
+          <div class="goal-input-row">
+            <input type="text" id="goal-name-input" placeholder="new goal name..."/>
+            <button class="habit-add-btn" id="btn-add-goal">+ add goal</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- graphs section -->
+      <div class="habit-section" id="graphs-section">
+        <div class="habit-section-header">
+          <span class="habit-section-title">TRACKER GRAPHS</span>
+        </div>
+        <div class="habit-section-body" id="graphs-list"></div>
+        <div style="padding:10px 16px;border-top:1px solid var(--border);flex-shrink:0;" id="add-graph-wrap">
+          <div class="new-graph-row">
+            <input type="text" id="new-graph-name" placeholder="graph name (e.g. sleep quality)..."/>
+            <button class="habit-add-btn" id="btn-add-graph">+ add graph</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -295,15 +451,18 @@ function setStatus(type, msg) { statusDot.className = type; statusText.textConte
 
 async function loadGraph() {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.main&select=nodes,edges`, { headers });
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.main&select=nodes,edges,habit_journal`, { headers });
     const data = await res.json();
     if (data && data[0]) {
       nodes = data[0].nodes || []; edges = data[0].edges || [];
       nextId = nodes.length ? Math.max(...nodes.map(n => n.id)) + 1 : 1;
+      habitData = data[0].habit_journal || {};
       if (nodes.length === 0) seedDefault();
     } else { seedDefault(); }
     setStatus('saved', 'loaded');
   } catch(e) { setStatus('error', 'load failed'); seedDefault(); }
+  habitMonth = getMonthKey(new Date());
+  initMonthSelect();
   loading.style.opacity = '0';
   setTimeout(() => loading.style.display = 'none', 400);
   resize(); tick(); resizeMinimap();
@@ -327,17 +486,6 @@ function scheduleSave() {
   setStatus('saving', 'saving...');
   clearTimeout(saveTimer);
   saveTimer = setTimeout(saveGraph, 800);
-}
-
-async function saveGraph() {
-  const payload = { nodes: nodes.map(n => ({...n, vx:0, vy:0})), edges, updated_at: new Date().toISOString() };
-  try {
-    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.main`, {
-      method: 'PATCH', headers: { ...headers, 'Prefer': 'return=minimal' },
-      body: JSON.stringify(payload)
-    });
-    setStatus('saved', 'saved ✓'); flashSave();
-  } catch(e) { setStatus('error', 'save failed'); }
 }
 
 function resize() {
@@ -453,6 +601,7 @@ function drawMinimap() {
 }
 
 function tick() {
+  if (!animPaused) {
   const repel = 2800, attract = 0.025, damp = 0.72, cp = 0.003;
   const cx = wrap.clientWidth/2, cy = wrap.clientHeight/2;
   nodes.forEach(a => {
@@ -478,6 +627,7 @@ function tick() {
     n.y=Math.max(30,Math.min(wrap.clientHeight-30,n.y));
   });
   draw();
+  }
   requestAnimationFrame(tick);
 }
 
@@ -709,7 +859,288 @@ document.addEventListener('keydown', e => {
   if (e.key==='Escape') { closeSpotlight(); closeCmdPalette(); focusMode=false; focusNodeId=null; }
 });
 
-window.addEventListener('resize', () => { resize(); resizeMinimap(); });
+// ── HABIT JOURNAL ──
+let habitData = {}; // { "2025-06": { moments:[], goals:[], graphs:[] } }
+let habitMonth = ''; // "2025-06"
+let habitMode = false;
+
+function getMonthKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`; }
+function getMonthLabel(key) {
+  const [y,m] = key.split('-');
+  return new Date(+y, +m-1, 1).toLocaleDateString('en-GB', { month:'long', year:'numeric' }).toUpperCase();
+}
+
+function initMonthSelect() {
+  const mSel = document.getElementById('habit-month-select');
+  const ySel = document.getElementById('habit-year-select');
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+
+  mSel.innerHTML = months.map((m,i) => {
+    const val = String(i+1).padStart(2,'0');
+    return `<option value="${val}">${m}</option>`;
+  }).join('');
+
+  const curYear = new Date().getFullYear();
+  ySel.innerHTML = '';
+  for (let y = curYear - 3; y <= curYear + 2; y++) {
+    const opt = document.createElement('option');
+    opt.value = y; opt.textContent = y; ySel.appendChild(opt);
+  }
+
+  const [ky, km] = habitMonth.split('-');
+  mSel.value = km;
+  ySel.value = ky;
+
+  function onMonthChange() {
+    habitMonth = `${ySel.value}-${mSel.value}`;
+    document.getElementById('habit-month-label').textContent = getMonthLabel(habitMonth);
+    renderHabitView();
+  }
+
+  mSel.addEventListener('change', onMonthChange);
+  ySel.addEventListener('change', onMonthChange);
+}
+
+function ensureMonth(key) {
+  if (!habitData[key]) habitData[key] = { moments:[], goals:[], graphs:[] };
+  // carry over goal names from most recent previous month if goals empty
+  if (habitData[key].goals.length === 0) {
+    const keys = Object.keys(habitData).sort();
+    const prev = keys.filter(k => k < key).pop();
+    if (prev && habitData[prev]) habitData[key].goals = habitData[prev].goals.map(g => ({ name:g.name, days:[] }));
+  }
+}
+
+function saveHabit() {
+  scheduleSave();
+}
+
+async function saveGraph() {
+  const payload = { nodes: nodes.map(n => ({...n, vx:0, vy:0})), edges, habit_journal: habitData, updated_at: new Date().toISOString() };
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.main`, {
+      method: 'PATCH', headers: { ...headers, 'Prefer': 'return=minimal' },
+      body: JSON.stringify(payload)
+    });
+    setStatus('saved', 'saved ✓'); flashSave();
+  } catch(e) { setStatus('error', 'save failed'); }
+}
+
+function renderHabitView() {
+  ensureMonth(habitMonth);
+  const [ky, km] = habitMonth.split('-');
+  document.getElementById('habit-month-select').value = km;
+  document.getElementById('habit-year-select').value = ky;
+  document.getElementById('habit-month-label').textContent = getMonthLabel(habitMonth);
+  renderMoments(); renderGoals(); renderGraphs();
+}
+
+// MOMENTS
+function renderMoments() {
+  const data = habitData[habitMonth];
+  const el = document.getElementById('moments-list');
+  if (!data.moments.length) { el.innerHTML = '<div style="font-size:11px;color:var(--text-dim);text-align:center;padding:12px 0;">no moments yet</div>'; return; }
+  const sorted = [...data.moments].sort((a,b) => a.day - b.day);
+  el.innerHTML = sorted.map((m,i) => `
+    <div class="moment-entry">
+      <span class="moment-day">${String(m.day).padStart(2,'0')}</span>
+      <span class="moment-text">${m.text}</span>
+      <button class="moment-del" data-idx="${data.moments.indexOf(m)}">✕</button>
+    </div>
+  `).join('');
+  el.querySelectorAll('.moment-del').forEach(btn => {
+    btn.addEventListener('click', () => { data.moments.splice(+btn.dataset.idx,1); renderMoments(); saveHabit(); });
+  });
+}
+
+document.getElementById('btn-add-moment').addEventListener('click', () => {
+  const day = parseInt(document.getElementById('moment-day-input').value);
+  const text = document.getElementById('moment-text-input').value.trim();
+  if (!day||day<1||day>31||!text) return;
+  habitData[habitMonth].moments.push({ day, text });
+  document.getElementById('moment-day-input').value = '';
+  document.getElementById('moment-text-input').value = '';
+  renderMoments(); saveHabit();
+});
+document.getElementById('moment-text-input').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('btn-add-moment').click(); });
+
+// GOALS - grid of day checkboxes
+function getDaysInMonth(key) {
+  const [y,m] = key.split('-');
+  return new Date(+y, +m, 0).getDate();
+}
+
+function renderGoals() {
+  const data = habitData[habitMonth];
+  const el = document.getElementById('goals-list');
+  const daysInMonth = getDaysInMonth(habitMonth);
+  if (!data.goals.length) { el.innerHTML = '<div style="font-size:11px;color:var(--text-dim);text-align:center;padding:12px 0;">no goals yet — add one below</div>'; return; }
+  el.innerHTML = data.goals.map((g,i) => {
+    const days = Array.from({length: daysInMonth}, (_,d) => {
+      const day = d+1;
+      const crossed = g.days && g.days.includes(day);
+      return `<div class="day-cell ${crossed?'crossed':''}" data-gi="${i}" data-day="${day}" title="Day ${day}">${crossed ? '✕' : day}</div>`;
+    }).join('');
+    return `
+      <div class="goal-row">
+        <div class="goal-row-header">
+          <span class="goal-name">${g.name}</span>
+          <button class="goal-del" data-idx="${i}">✕ remove</button>
+        </div>
+        <div class="goal-days-grid">${days}</div>
+      </div>
+    `;
+  }).join('');
+
+  el.querySelectorAll('.day-cell').forEach(cell => {
+    cell.addEventListener('click', () => {
+      const gi = +cell.dataset.gi, day = +cell.dataset.day;
+      const g = data.goals[gi];
+      if (!g.days) g.days = [];
+      const idx = g.days.indexOf(day);
+      if (idx >= 0) g.days.splice(idx,1); else g.days.push(day);
+      renderGoals(); saveHabit();
+    });
+  });
+  el.querySelectorAll('.goal-del').forEach(btn => {
+    btn.addEventListener('click', () => { data.goals.splice(+btn.dataset.idx,1); renderGoals(); saveHabit(); });
+  });
+}
+
+document.getElementById('btn-add-goal').addEventListener('click', () => {
+  const name = document.getElementById('goal-name-input').value.trim();
+  if (!name) return;
+  habitData[habitMonth].goals.push({ name, days:[] });
+  document.getElementById('goal-name-input').value = '';
+  renderGoals(); saveHabit();
+});
+document.getElementById('goal-name-input').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('btn-add-goal').click(); });
+
+// GRAPHS
+function renderGraphs() {
+  const data = habitData[habitMonth];
+  const el = document.getElementById('graphs-list');
+  el.innerHTML = '';
+  data.graphs.forEach((g, gi) => {
+    const block = document.createElement('div'); block.className = 'graph-block';
+    block.innerHTML = `
+      <div class="graph-block-header">
+        <span class="graph-block-title">${g.name.toUpperCase()}</span>
+        <button class="graph-del-btn" data-gi="${gi}">✕ remove</button>
+      </div>
+      <div class="graph-canvas-wrap"><canvas id="graph-canvas-${gi}" width="800" height="160"></canvas></div>
+      <div class="graph-input-row">
+        <label>DAY</label>
+        <input type="number" class="gp-day" min="1" max="31" placeholder="1-31"/>
+        <label>VALUE (1-5)</label>
+        <input type="number" class="gp-val" min="1" max="5" placeholder="1-5"/>
+        <button class="habit-add-btn gp-add" data-gi="${gi}">+ plot</button>
+        <button class="habit-add-btn gp-clear" data-gi="${gi}" style="color:var(--text-dim);">clear all</button>
+      </div>
+    `;
+    el.appendChild(block);
+    block.querySelector('.graph-del-btn').addEventListener('click', () => { data.graphs.splice(gi,1); renderGraphs(); saveHabit(); });
+    block.querySelector('.gp-add').addEventListener('click', () => {
+      const day = parseInt(block.querySelector('.gp-day').value);
+      const val = parseInt(block.querySelector('.gp-val').value);
+      if (!day||day<1||day>31||!val||val<1||val>5) return;
+      g.points = g.points || [];
+      const existing = g.points.findIndex(p => p.day === day);
+      if (existing >= 0) g.points[existing].val = val; else g.points.push({ day, val });
+      g.points.sort((a,b) => a.day - b.day);
+      block.querySelector('.gp-day').value = ''; block.querySelector('.gp-val').value = '';
+      drawGraphCanvas(gi, g); saveHabit();
+    });
+    block.querySelector('.gp-clear').addEventListener('click', () => { g.points = []; drawGraphCanvas(gi, g); saveHabit(); });
+    setTimeout(() => drawGraphCanvas(gi, g), 50);
+  });
+}
+
+function drawGraphCanvas(gi, g) {
+  const canvas = document.getElementById(`graph-canvas-${gi}`);
+  if (!canvas) return;
+  const w = canvas.offsetWidth || 600, h = canvas.offsetHeight || 160;
+  canvas.width = w * devicePixelRatio; canvas.height = h * devicePixelRatio;
+  const c = canvas.getContext('2d'); c.scale(devicePixelRatio, devicePixelRatio);
+  c.clearRect(0,0,w,h);
+  const pad = { l:32, r:16, t:12, b:28 };
+  const gw = w - pad.l - pad.r, gh = h - pad.t - pad.b;
+
+  // grid
+  c.strokeStyle = '#222'; c.lineWidth = 0.5;
+  for (let v = 1; v <= 5; v++) {
+    const y = pad.t + gh - ((v-1)/4)*gh;
+    c.beginPath(); c.moveTo(pad.l, y); c.lineTo(pad.l+gw, y); c.stroke();
+    c.font = '9px IBM Plex Mono, monospace'; c.fillStyle = '#555'; c.textAlign = 'right';
+    c.fillText(v, pad.l-4, y+3);
+  }
+  for (let d = 1; d <= 31; d += 5) {
+    const x = pad.l + ((d-1)/30)*gw;
+    c.beginPath(); c.moveTo(x, pad.t); c.lineTo(x, pad.t+gh); c.stroke();
+    c.font = '9px IBM Plex Mono, monospace'; c.fillStyle = '#555'; c.textAlign = 'center';
+    c.fillText(d, x, pad.t+gh+14);
+  }
+  // axes labels
+  c.font = '9px IBM Plex Mono, monospace'; c.fillStyle = '#444'; c.textAlign = 'center';
+  c.fillText('day of month', pad.l + gw/2, h-2);
+
+  const pts = g.points || [];
+  if (!pts.length) return;
+
+  // line
+  c.beginPath();
+  pts.forEach((p,i) => {
+    const x = pad.l + ((p.day-1)/30)*gw;
+    const y = pad.t + gh - ((p.val-1)/4)*gh;
+    if (i===0) c.moveTo(x,y); else c.lineTo(x,y);
+  });
+  c.strokeStyle = '#5dcaa5'; c.lineWidth = 1.5; c.stroke();
+
+  // dots
+  pts.forEach(p => {
+    const x = pad.l + ((p.day-1)/30)*gw;
+    const y = pad.t + gh - ((p.val-1)/4)*gh;
+    c.beginPath(); c.arc(x,y,3,0,Math.PI*2);
+    c.fillStyle = '#5dcaa5'; c.fill();
+    c.beginPath(); c.arc(x,y,2,0,Math.PI*2);
+    c.fillStyle = '#0e0e0e'; c.fill();
+  });
+}
+
+document.getElementById('btn-add-graph').addEventListener('click', () => {
+  const name = document.getElementById('new-graph-name').value.trim();
+  if (!name) return;
+  habitData[habitMonth].graphs.push({ name, points:[] });
+  document.getElementById('new-graph-name').value = '';
+  renderGraphs(); saveHabit();
+});
+document.getElementById('new-graph-name').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('btn-add-graph').click(); });
+
+// TOGGLE VIEW — new page style, physics paused when habit view open
+let animPaused = false;
+
+function showHabitView() {
+  habitMode = true; animPaused = true;
+  document.getElementById('graph-view').style.display = 'none';
+  document.getElementById('habit-view').style.display = 'flex';
+  document.getElementById('hint-bar').style.display = 'none';
+  document.getElementById('minimap').style.display = 'none';
+  document.getElementById('btn-habit').classList.add('active');
+  renderHabitView();
+}
+function showGraphView() {
+  habitMode = false; animPaused = false;
+  document.getElementById('graph-view').style.display = 'flex';
+  document.getElementById('habit-view').style.display = 'none';
+  document.getElementById('hint-bar').style.display = '';
+  document.getElementById('minimap').style.display = '';
+  document.getElementById('btn-habit').classList.remove('active');
+  nodes.forEach(n => { n.vx = 0; n.vy = 0; });
+  resize();
+}
+document.getElementById('btn-habit').addEventListener('click', () => { habitMode ? showGraphView() : showHabitView(); });
+
+window.addEventListener('resize', () => { resize(); resizeMinimap(); if (habitMode) { habitData[habitMonth]?.graphs.forEach((g,gi) => drawGraphCanvas(gi,g)); } });
 loadGraph();
 </script>
 </body>
