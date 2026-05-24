@@ -1033,7 +1033,7 @@ function renderGraphs() {
         <label>DAY</label>
         <input type="number" class="gp-day" min="1" max="31" placeholder="1-31"/>
         <label>VALUE (1-5)</label>
-        <input type="number" class="gp-val" min="1" max="5" placeholder="1-5"/>
+        <input type="number" class="gp-val" min="1" max="5" step="0.1" placeholder="1.0-5.0"/>
         <button class="habit-add-btn gp-add" data-gi="${gi}">+ plot</button>
         <button class="habit-add-btn gp-clear" data-gi="${gi}" style="color:var(--text-dim);">clear all</button>
       </div>
@@ -1042,8 +1042,8 @@ function renderGraphs() {
     block.querySelector('.graph-del-btn').addEventListener('click', () => { data.graphs.splice(gi,1); renderGraphs(); saveHabit(); });
     block.querySelector('.gp-add').addEventListener('click', () => {
       const day = parseInt(block.querySelector('.gp-day').value);
-      const val = parseInt(block.querySelector('.gp-val').value);
-      if (!day||day<1||day>31||!val||val<1||val>5) return;
+      const val = parseFloat((+block.querySelector('.gp-val').value).toFixed(1));
+      if (!day||day<1||day>31||isNaN(val)||val<1||val>5) return;
       g.points = g.points || [];
       const existing = g.points.findIndex(p => p.day === day);
       if (existing >= 0) g.points[existing].val = val; else g.points.push({ day, val });
@@ -1063,24 +1063,29 @@ function drawGraphCanvas(gi, g) {
   canvas.width = w * devicePixelRatio; canvas.height = h * devicePixelRatio;
   const c = canvas.getContext('2d'); c.scale(devicePixelRatio, devicePixelRatio);
   c.clearRect(0,0,w,h);
-  const pad = { l:32, r:16, t:12, b:28 };
+  const pad = { l:36, r:16, t:12, b:28 };
   const gw = w - pad.l - pad.r, gh = h - pad.t - pad.b;
 
-  // grid
+  // y grid lines (1 to 5 in 0.5 steps)
   c.strokeStyle = '#222'; c.lineWidth = 0.5;
-  for (let v = 1; v <= 5; v++) {
+  for (let v = 1; v <= 5; v += 0.5) {
     const y = pad.t + gh - ((v-1)/4)*gh;
     c.beginPath(); c.moveTo(pad.l, y); c.lineTo(pad.l+gw, y); c.stroke();
-    c.font = '9px IBM Plex Mono, monospace'; c.fillStyle = '#555'; c.textAlign = 'right';
-    c.fillText(v, pad.l-4, y+3);
+    if (Number.isInteger(v)) {
+      c.font = '9px IBM Plex Mono, monospace'; c.fillStyle = '#555'; c.textAlign = 'right';
+      c.fillText(v, pad.l-4, y+3);
+    }
   }
-  for (let d = 1; d <= 31; d += 5) {
+
+  // x axis — all 31 days
+  for (let d = 1; d <= 31; d++) {
     const x = pad.l + ((d-1)/30)*gw;
-    c.beginPath(); c.moveTo(x, pad.t); c.lineTo(x, pad.t+gh); c.stroke();
-    c.font = '9px IBM Plex Mono, monospace'; c.fillStyle = '#555'; c.textAlign = 'center';
-    c.fillText(d, x, pad.t+gh+14);
+    c.beginPath(); c.moveTo(x, pad.t); c.lineTo(x, pad.t+gh); c.strokeStyle = '#1a1a1a'; c.lineWidth = 0.5; c.stroke();
+    c.font = '7px IBM Plex Mono, monospace'; c.fillStyle = '#444'; c.textAlign = 'center';
+    c.fillText(d, x, pad.t+gh+12);
   }
-  // axes labels
+
+  // axis label
   c.font = '9px IBM Plex Mono, monospace'; c.fillStyle = '#444'; c.textAlign = 'center';
   c.fillText('day of month', pad.l + gw/2, h-2);
 
@@ -1100,10 +1105,8 @@ function drawGraphCanvas(gi, g) {
   pts.forEach(p => {
     const x = pad.l + ((p.day-1)/30)*gw;
     const y = pad.t + gh - ((p.val-1)/4)*gh;
-    c.beginPath(); c.arc(x,y,3,0,Math.PI*2);
-    c.fillStyle = '#5dcaa5'; c.fill();
-    c.beginPath(); c.arc(x,y,2,0,Math.PI*2);
-    c.fillStyle = '#0e0e0e'; c.fill();
+    c.beginPath(); c.arc(x,y,3,0,Math.PI*2); c.fillStyle = '#5dcaa5'; c.fill();
+    c.beginPath(); c.arc(x,y,2,0,Math.PI*2); c.fillStyle = '#0e0e0e'; c.fill();
   });
 }
 
