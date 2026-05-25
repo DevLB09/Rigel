@@ -247,6 +247,51 @@ canvas { display: block; width: 100%; height: 100%; }
 .graph-block-title { font-size: 11px; color: var(--accent2); letter-spacing: 0.06em; }
 .graph-del-btn { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 11px; }
 .graph-del-btn:hover { color: #e24b4a; }
+.graph-cmp-btn { background: none; border: 1px solid var(--border); border-radius: 4px; color: var(--text-dim); cursor: pointer; font-size: 10px; padding: 3px 8px; font-family: var(--font); letter-spacing: 0.04em; transition: all 0.12s; }
+.graph-cmp-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+/* GRAPH COMPARISON MODAL */
+#cmp-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.75);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 500; opacity: 0; pointer-events: none; transition: opacity 0.18s;
+}
+#cmp-overlay.open { opacity: 1; pointer-events: all; }
+#cmp-modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; width: 90vw; max-width: 900px; max-height: 88vh;
+  display: flex; flex-direction: column; overflow: hidden;
+  box-shadow: 0 24px 60px rgba(0,0,0,0.7);
+}
+#cmp-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+#cmp-title { font-size: 12px; color: var(--accent); letter-spacing: 0.08em; }
+#cmp-close { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 14px; }
+#cmp-close:hover { color: var(--text); }
+#cmp-controls {
+  display: flex; align-items: center; gap: 16px; padding: 12px 20px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0; flex-wrap: wrap;
+}
+#cmp-controls label { font-size: 10px; color: var(--text-dim); letter-spacing: 0.06em; }
+#cmp-controls select { font-family: var(--font); font-size: 11px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 5px 10px; outline: none; cursor: pointer; }
+#cmp-controls select:focus { border-color: var(--accent); }
+#cmp-mode-btns { display: flex; gap: 6px; margin-left: auto; }
+.cmp-mode-btn {
+  font-family: var(--font); font-size: 10px; padding: 5px 12px;
+  background: transparent; border: 1px solid var(--border); border-radius: 4px;
+  color: var(--text-dim); cursor: pointer; letter-spacing: 0.04em; transition: all 0.12s;
+}
+.cmp-mode-btn.active { border-color: var(--accent2); color: var(--accent2); }
+#cmp-legend {
+  display: flex; gap: 20px; padding: 8px 20px; flex-shrink: 0;
+}
+.cmp-legend-item { display: flex; align-items: center; gap: 6px; font-size: 10px; color: var(--text-muted); letter-spacing: 0.04em; }
+.cmp-legend-dot { width: 10px; height: 3px; border-radius: 2px; }
+#cmp-body { flex: 1; padding: 20px; overflow: hidden; }
+#cmp-canvas-wrap { width: 100%; height: 100%; min-height: 300px; }
+#cmp-canvas { width: 100%; height: 100%; }
 .graph-canvas-wrap { width: 100%; height: 160px; position: relative; }
 .graph-canvas-wrap canvas { width: 100%; height: 100%; }
 .graph-input-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
@@ -498,8 +543,37 @@ canvas { display: block; width: 100%; height: 100%; }
   </div>
 </div>
 
+<!-- GRAPH COMPARISON MODAL -->
+<div id="cmp-overlay">
+  <div id="cmp-modal">
+    <div id="cmp-header">
+      <span id="cmp-title">GRAPH COMPARISON</span>
+      <button id="cmp-close">✕</button>
+    </div>
+    <div id="cmp-controls">
+      <label>THIS MONTH'S GRAPH</label>
+      <select id="cmp-graph-a-sel"></select>
+      <label style="margin-left:8px;">VS</label>
+      <select id="cmp-month-sel"></select>
+      <select id="cmp-year-sel"></select>
+      <select id="cmp-graph-b-sel"></select>
+      <div id="cmp-mode-btns">
+        <button class="cmp-mode-btn active" id="cmp-side">side by side</button>
+        <button class="cmp-mode-btn" id="cmp-overlap">overlap</button>
+      </div>
+    </div>
+    <div id="cmp-legend">
+      <div class="cmp-legend-item"><div class="cmp-legend-dot" style="background:#5dcaa5"></div><span id="cmp-label-a">this month</span></div>
+      <div class="cmp-legend-item"><div class="cmp-legend-dot" style="background:#7f77dd"></div><span id="cmp-label-b">compare month</span></div>
+    </div>
+    <div id="cmp-body">
+      <div id="cmp-canvas-wrap"><canvas id="cmp-canvas"></canvas></div>
+    </div>
+  </div>
+</div>
+
 <script>
-const PASSCODE = "123456";
+const PASSCODE = "883518";
 const passOverlay = document.getElementById('pass-overlay');
 const passInput = document.getElementById('pass-input');
 passInput.addEventListener('input', () => {
@@ -1121,7 +1195,10 @@ function renderGraphs() {
     block.innerHTML = `
       <div class="graph-block-header">
         <span class="graph-block-title">${g.name.toUpperCase()}</span>
-        <button class="graph-del-btn" data-gi="${gi}">✕ remove</button>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="graph-cmp-btn" data-gi="${gi}">⟺ compare</button>
+          <button class="graph-del-btn" data-gi="${gi}">✕ remove</button>
+        </div>
       </div>
       <div class="graph-canvas-wrap"><canvas id="graph-canvas-${gi}" width="800" height="160"></canvas></div>
       <div class="graph-input-row">
@@ -1135,6 +1212,7 @@ function renderGraphs() {
     `;
     el.appendChild(block);
     block.querySelector('.graph-del-btn').addEventListener('click', () => { data.graphs.splice(gi,1); renderGraphs(); saveHabit(); });
+    block.querySelector('.graph-cmp-btn').addEventListener('click', () => openCompare(gi));
     block.querySelector('.gp-add').addEventListener('click', () => {
       const day = parseInt(block.querySelector('.gp-day').value);
       const val = parseFloat((+block.querySelector('.gp-val').value).toFixed(1));
@@ -1239,8 +1317,8 @@ function showGraphView() {
 document.getElementById('btn-habit').addEventListener('click', () => { habitMode ? showGraphView() : showHabitView(); });
 
 // ── RIGEL AI ASSISTANT ──
-const GEMINI_KEY = 'AIzaSyCPPoA2xVYPKEdzXwUH8p7a_VaMN4DpVkM';
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_KEY}`;
+const GROQ_KEY = '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';
+const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 const aiBtn = document.getElementById('ai-btn');
 const aiPanel = document.getElementById('ai-panel');
@@ -1338,21 +1416,191 @@ async function sendAiMessage() {
   const prompt = `${context}\n\n=== USER QUESTION ===\n${text}`;
 
   try {
-    const res = await fetch(GEMINI_URL, {
+    const res = await fetch(GROQ_URL, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 1024,
+        temperature: 0.7
+      })
     });
     const data = await res.json();
-    console.log('gemini response:', data);
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || `no response. raw: ${JSON.stringify(data).slice(0,200)}`;
+    console.log('groq response:', data);
+    const reply = data?.choices?.[0]?.message?.content || `no response. raw: ${JSON.stringify(data).slice(0,200)}`;
     typing.remove();
     appendMsg('assistant', reply);
   } catch(e) {
     typing.remove();
-    appendMsg('assistant', 'error connecting to gemini. check your API key or internet.');
+    appendMsg('assistant', 'error connecting to groq. check your API key or internet.');
   }
   aiSend.disabled = false;
+}
+
+// ── GRAPH COMPARISON ──
+let cmpGraphIdx = null, cmpMode = 'side';
+
+function openCompare(gi) {
+  cmpGraphIdx = gi;
+  const g = habitData[habitMonth]?.graphs[gi];
+  if (!g) return;
+  document.getElementById('cmp-title').textContent = `COMPARE — ${g.name.toUpperCase()}`;
+
+  // populate graph A selector (current month's graphs)
+  const gASel = document.getElementById('cmp-graph-a-sel');
+  const currentGraphs = habitData[habitMonth]?.graphs || [];
+  gASel.innerHTML = currentGraphs.map((g,i) => `<option value="${i}">${g.name}</option>`).join('');
+  gASel.value = gi;
+
+  // populate month/year selects
+  const mSel = document.getElementById('cmp-month-sel');
+  const ySel = document.getElementById('cmp-year-sel');
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  mSel.innerHTML = months.map((m,i) => `<option value="${String(i+1).padStart(2,'0')}">${m}</option>`).join('');
+  const curYear = new Date().getFullYear();
+  ySel.innerHTML = '';
+  for (let y = curYear - 3; y <= curYear + 2; y++) {
+    const opt = document.createElement('option'); opt.value = y; opt.textContent = y; ySel.appendChild(opt);
+  }
+  const [ky, km] = habitMonth.split('-');
+  let prevM = parseInt(km) - 1, prevY = parseInt(ky);
+  if (prevM < 1) { prevM = 12; prevY--; }
+  mSel.value = String(prevM).padStart(2,'0');
+  ySel.value = String(prevY);
+
+  // populate graph B selector based on selected compare month
+  updateGraphBSelector();
+
+  mSel.onchange = () => { updateGraphBSelector(); renderCompare(); };
+  ySel.onchange = () => { updateGraphBSelector(); renderCompare(); };
+  gASel.onchange = renderCompare;
+  document.getElementById('cmp-graph-b-sel').onchange = renderCompare;
+
+  document.getElementById('cmp-overlay').classList.add('open');
+  setTimeout(renderCompare, 50);
+}
+
+function updateGraphBSelector() {
+  const cmpKey = getCmpMonth();
+  const gBSel = document.getElementById('cmp-graph-b-sel');
+  const compareGraphs = habitData[cmpKey]?.graphs || [];
+  if (!compareGraphs.length) {
+    gBSel.innerHTML = '<option value="">no graphs in this month</option>';
+  } else {
+    gBSel.innerHTML = compareGraphs.map((g,i) => `<option value="${i}">${g.name}</option>`).join('');
+    // try to match by name
+    const currentName = habitData[habitMonth]?.graphs[+document.getElementById('cmp-graph-a-sel').value]?.name;
+    const matchIdx = compareGraphs.findIndex(g => g.name === currentName);
+    if (matchIdx >= 0) gBSel.value = matchIdx;
+  }
+}
+
+function getCmpMonth() {
+  const m = document.getElementById('cmp-month-sel').value;
+  const y = document.getElementById('cmp-year-sel').value;
+  return `${y}-${m}`;
+}
+
+function setCmpMode(mode) {
+  cmpMode = mode;
+  document.getElementById('cmp-side').classList.toggle('active', mode === 'side');
+  document.getElementById('cmp-overlap').classList.toggle('active', mode === 'overlap');
+  renderCompare();
+}
+
+document.getElementById('cmp-side').addEventListener('click', () => setCmpMode('side'));
+document.getElementById('cmp-overlap').addEventListener('click', () => setCmpMode('overlap'));
+document.getElementById('cmp-close').addEventListener('click', () => document.getElementById('cmp-overlay').classList.remove('open'));
+document.getElementById('cmp-overlay').addEventListener('mousedown', e => { if (e.target === document.getElementById('cmp-overlay')) document.getElementById('cmp-overlay').classList.remove('open'); });
+
+function renderCompare() {
+  const cmpKey = getCmpMonth();
+  const [ky, km] = habitMonth.split('-');
+  const [cy, cm] = cmpKey.split('-');
+  const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const labelA = `${months[parseInt(km)-1]} ${ky}`;
+  const labelB = `${months[parseInt(cm)-1]} ${cy}`;
+
+  const giA = +document.getElementById('cmp-graph-a-sel').value;
+  const giB = document.getElementById('cmp-graph-b-sel').value;
+  const gA = habitData[habitMonth]?.graphs[giA];
+  const gB = giB !== '' ? habitData[cmpKey]?.graphs[+giB] : null;
+
+  const nameA = gA ? `${gA.name} (${labelA})` : labelA;
+  const nameB = gB ? `${gB.name} (${labelB})` : labelB;
+  document.getElementById('cmp-label-a').textContent = nameA;
+  document.getElementById('cmp-label-b').textContent = nameB;
+
+  const canvas = document.getElementById('cmp-canvas');
+  const wrap = document.getElementById('cmp-canvas-wrap');
+  const W = wrap.offsetWidth || 800, H = wrap.offsetHeight || 300;
+  canvas.width = W * devicePixelRatio; canvas.height = H * devicePixelRatio;
+  canvas.style.width = W + 'px'; canvas.style.height = H + 'px';
+  const c = canvas.getContext('2d'); c.scale(devicePixelRatio, devicePixelRatio);
+  c.clearRect(0, 0, W, H);
+
+  if (cmpMode === 'side') {
+    const half = (W - 24) / 2;
+    drawCompareGraph(c, gA?.points || [], 0, 0, half, H, '#5dcaa5', nameA);
+    drawCompareGraph(c, gB?.points || [], half + 24, 0, half, H, '#7f77dd', nameB);
+    c.beginPath(); c.moveTo(half + 12, 10); c.lineTo(half + 12, H - 10);
+    c.strokeStyle = '#2a2a2a'; c.lineWidth = 1; c.stroke();
+  } else {
+    drawCompareGraph(c, gA?.points || [], 0, 0, W, H, '#5dcaa5', null);
+    drawCompareGraph(c, gB?.points || [], 0, 0, W, H, '#7f77dd', null, true);
+  }
+}
+
+function drawCompareGraph(c, points, ox, oy, w, h, color, title, dashed = false) {
+  const pad = { l: 36, r: 12, t: title ? 24 : 12, b: 28 };
+  const gw = w - pad.l - pad.r, gh = h - pad.t - pad.b;
+
+  if (title) {
+    c.font = '10px IBM Plex Mono, monospace'; c.fillStyle = color;
+    c.textAlign = 'left'; c.fillText(title, ox + pad.l, oy + 14);
+  }
+
+  // grid
+  c.strokeStyle = '#1e1e1e'; c.lineWidth = 0.5;
+  for (let v = 1; v <= 5; v++) {
+    const y = oy + pad.t + gh - ((v-1)/4)*gh;
+    c.beginPath(); c.moveTo(ox+pad.l, y); c.lineTo(ox+pad.l+gw, y); c.stroke();
+    c.font = '8px IBM Plex Mono, monospace'; c.fillStyle = '#444'; c.textAlign = 'right';
+    c.fillText(v, ox+pad.l-4, y+3);
+  }
+  for (let d = 1; d <= 31; d += 5) {
+    const x = ox + pad.l + ((d-1)/30)*gw;
+    c.beginPath(); c.moveTo(x, oy+pad.t); c.lineTo(x, oy+pad.t+gh);
+    c.strokeStyle = '#1a1a1a'; c.lineWidth = 0.5; c.stroke();
+    c.font = '8px IBM Plex Mono, monospace'; c.fillStyle = '#444'; c.textAlign = 'center';
+    c.fillText(d, x, oy+pad.t+gh+14);
+  }
+
+  if (!points.length) {
+    c.font = '10px IBM Plex Mono, monospace'; c.fillStyle = '#333';
+    c.textAlign = 'center'; c.fillText('no data', ox+pad.l+gw/2, oy+pad.t+gh/2);
+    return;
+  }
+
+  // line
+  if (dashed) { c.setLineDash([4, 3]); } else { c.setLineDash([]); }
+  c.beginPath();
+  points.forEach((p,i) => {
+    const x = ox + pad.l + ((p.day-1)/30)*gw;
+    const y = oy + pad.t + gh - ((p.val-1)/4)*gh;
+    if (i===0) c.moveTo(x,y); else c.lineTo(x,y);
+  });
+  c.strokeStyle = color; c.lineWidth = 2; c.stroke();
+  c.setLineDash([]);
+
+  // dots
+  points.forEach(p => {
+    const x = ox + pad.l + ((p.day-1)/30)*gw;
+    const y = oy + pad.t + gh - ((p.val-1)/4)*gh;
+    c.beginPath(); c.arc(x,y,3,0,Math.PI*2); c.fillStyle = color; c.fill();
+    c.beginPath(); c.arc(x,y,1.5,0,Math.PI*2); c.fillStyle = '#0e0e0e'; c.fill();
+  });
 }
 
 window.addEventListener('resize', () => { resize(); resizeMinimap(); if (habitMode) { habitData[habitMonth]?.graphs.forEach((g,gi) => drawGraphCanvas(gi,g)); } });
