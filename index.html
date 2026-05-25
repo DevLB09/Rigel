@@ -268,6 +268,79 @@ canvas { display: block; width: 100%; height: 100%; }
 #habit-year-select { font-family: var(--font); font-size: 12px; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; color: var(--text); padding: 4px 10px; outline: none; cursor: pointer; }
 #habit-year-select:focus { border-color: var(--accent); }
 #habit-month-label { font-size: 12px; color: var(--accent); letter-spacing: 0.08em; }
+
+/* ── RIGEL AI ASSISTANT ── */
+#ai-btn {
+  position: fixed; bottom: 20px; left: 20px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--accent); border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; z-index: 60; box-shadow: 0 4px 20px rgba(127,119,221,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+#ai-btn:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(127,119,221,0.6); }
+#ai-panel {
+  position: fixed; bottom: 76px; left: 20px;
+  width: 340px; max-height: 520px;
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 12px; display: flex; flex-direction: column;
+  z-index: 60; box-shadow: 0 16px 48px rgba(0,0,0,0.6);
+  transform: scale(0.95) translateY(10px); opacity: 0; pointer-events: none;
+  transition: all 0.18s ease;
+}
+#ai-panel.open { transform: scale(1) translateY(0); opacity: 1; pointer-events: all; }
+#ai-panel-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px; border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+#ai-panel-title { font-size: 11px; color: var(--accent); letter-spacing: 0.1em; }
+#ai-panel-close { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 13px; }
+#ai-panel-close:hover { color: var(--text); }
+#ai-messages {
+  flex: 1; overflow-y: auto; padding: 12px 14px;
+  display: flex; flex-direction: column; gap: 10px;
+  min-height: 200px;
+}
+#ai-messages::-webkit-scrollbar { width: 3px; }
+#ai-messages::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 2px; }
+.ai-msg { display: flex; flex-direction: column; gap: 3px; max-width: 90%; }
+.ai-msg.user { align-self: flex-end; }
+.ai-msg.assistant { align-self: flex-start; }
+.ai-bubble {
+  padding: 8px 11px; border-radius: 8px; font-size: 11px; line-height: 1.55; letter-spacing: 0.02em;
+}
+.ai-msg.user .ai-bubble { background: #2a2660; color: var(--text); border-radius: 8px 8px 2px 8px; }
+.ai-msg.assistant .ai-bubble { background: var(--bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px 8px 8px 2px; }
+.ai-typing { display: flex; gap: 4px; padding: 10px 12px; align-items: center; }
+.ai-typing span { width: 5px; height: 5px; border-radius: 50%; background: var(--text-dim); animation: aiDot 1.2s infinite; }
+.ai-typing span:nth-child(2) { animation-delay: 0.2s; }
+.ai-typing span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes aiDot { 0%,80%,100%{opacity:0.2;transform:scale(0.8)} 40%{opacity:1;transform:scale(1)} }
+#ai-suggestions { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px 14px; flex-shrink: 0; }
+.ai-suggestion {
+  font-family: var(--font); font-size: 10px; padding: 4px 9px;
+  background: transparent; border: 1px solid var(--border2); border-radius: 20px;
+  color: var(--text-dim); cursor: pointer; transition: all 0.12s; letter-spacing: 0.03em;
+}
+.ai-suggestion:hover { border-color: var(--accent); color: var(--accent); }
+#ai-input-wrap {
+  display: flex; gap: 8px; padding: 10px 14px;
+  border-top: 1px solid var(--border); flex-shrink: 0;
+}
+#ai-input {
+  flex: 1; font-family: var(--font); font-size: 11px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
+  color: var(--text); padding: 7px 10px; outline: none; resize: none; height: 34px;
+}
+#ai-input:focus { border-color: var(--accent); }
+#ai-input::placeholder { color: var(--text-dim); }
+#ai-send {
+  font-family: var(--font); font-size: 11px; padding: 7px 12px;
+  background: var(--accent); border: none; border-radius: 6px;
+  color: #fff; cursor: pointer; transition: opacity 0.15s; flex-shrink: 0;
+}
+#ai-send:hover { opacity: 0.85; }
+#ai-send:disabled { opacity: 0.4; cursor: not-allowed; }
 </style>
 </head>
 <body>
@@ -402,6 +475,28 @@ canvas { display: block; width: 100%; height: 100%; }
 
 <!-- MINI-MAP -->
 <div id="minimap"><canvas id="minimap-canvas"></canvas></div>
+
+<!-- RIGEL AI ASSISTANT -->
+<button id="ai-btn" title="Ask Rigel AI">✦</button>
+<div id="ai-panel">
+  <div id="ai-panel-header">
+    <span id="ai-panel-title">✦ RIGEL AI</span>
+    <button id="ai-panel-close">✕</button>
+  </div>
+  <div id="ai-messages">
+    <div class="ai-msg assistant"><div class="ai-bubble">hey swapnil 👋 i know your whole graph — nodes, journals, habits. ask me anything.</div></div>
+  </div>
+  <div id="ai-suggestions">
+    <button class="ai-suggestion">summarize all journals</button>
+    <button class="ai-suggestion">what am i neglecting?</button>
+    <button class="ai-suggestion">how's my habit month?</button>
+    <button class="ai-suggestion">list all my nodes</button>
+  </div>
+  <div id="ai-input-wrap">
+    <input id="ai-input" placeholder="ask anything about your data..." autocomplete="off"/>
+    <button id="ai-send">send</button>
+  </div>
+</div>
 
 <script>
 const PASSCODE = "883518";
@@ -1142,6 +1237,123 @@ function showGraphView() {
   resize();
 }
 document.getElementById('btn-habit').addEventListener('click', () => { habitMode ? showGraphView() : showHabitView(); });
+
+// ── RIGEL AI ASSISTANT ──
+const GEMINI_KEY = 'AIzaSyCgZJoHQuSm_jgzxiODH63ZxGWpAzcYsMk';
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent?key=${GEMINI_KEY}`;
+
+const aiBtn = document.getElementById('ai-btn');
+const aiPanel = document.getElementById('ai-panel');
+const aiMessages = document.getElementById('ai-messages');
+const aiInput = document.getElementById('ai-input');
+const aiSend = document.getElementById('ai-send');
+let aiOpen = false;
+
+aiBtn.addEventListener('click', () => {
+  aiOpen = !aiOpen;
+  aiPanel.classList.toggle('open', aiOpen);
+  if (aiOpen) setTimeout(() => aiInput.focus(), 200);
+});
+document.getElementById('ai-panel-close').addEventListener('click', () => { aiOpen = false; aiPanel.classList.remove('open'); });
+
+document.querySelectorAll('.ai-suggestion').forEach(btn => {
+  btn.addEventListener('click', () => { aiInput.value = btn.textContent; sendAiMessage(); });
+});
+
+aiInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAiMessage(); } });
+aiSend.addEventListener('click', sendAiMessage);
+
+function buildContext() {
+  // build a rich context string from all of rigel's data
+  let ctx = `You are Rigel AI, a personal assistant embedded inside the user's private life-management app called Rigel. You have full access to their data below. Be concise, warm, and insightful. Use the data to give real answers.\n\n`;
+
+  ctx += `=== GRAPH NODES ===\n`;
+  nodes.forEach(n => {
+    const cat = n.cat || 'default';
+    const links = edges.filter(([a,b]) => a===n.id||b===n.id).map(([a,b]) => {
+      const otherId = a===n.id ? b : a;
+      return nodes.find(x=>x.id===otherId)?.label || '';
+    }).filter(Boolean);
+    ctx += `• ${n.label} [${cat}]${links.length ? ` — connected to: ${links.join(', ')}` : ''}\n`;
+    if (n.journal && n.journal.length) {
+      n.journal.forEach(j => { ctx += `  journal (${j.date}): ${j.text}\n`; });
+    }
+  });
+
+  ctx += `\n=== HABIT JOURNAL (${getMonthLabel(habitMonth)}) ===\n`;
+  const hd = habitData[habitMonth];
+  if (hd) {
+    if (hd.moments?.length) {
+      ctx += `Memorable moments:\n`;
+      hd.moments.sort((a,b)=>a.day-b.day).forEach(m => { ctx += `  Day ${m.day}: ${m.text}\n`; });
+    }
+    if (hd.goals?.length) {
+      ctx += `Goals this month:\n`;
+      hd.goals.forEach(g => {
+        const crossed = g.days?.length || 0;
+        ctx += `  ${g.name}: ${crossed} days completed (days: ${g.days?.join(', ')||'none'})\n`;
+      });
+    }
+    if (hd.graphs?.length) {
+      ctx += `Tracker graphs:\n`;
+      hd.graphs.forEach(g => {
+        if (g.points?.length) {
+          const avg = (g.points.reduce((s,p)=>s+p.val,0)/g.points.length).toFixed(1);
+          ctx += `  ${g.name}: avg ${avg}/5 over ${g.points.length} data points\n`;
+        }
+      });
+    }
+  }
+
+  return ctx;
+}
+
+function appendMsg(role, text) {
+  const div = document.createElement('div');
+  div.className = `ai-msg ${role}`;
+  div.innerHTML = `<div class="ai-bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  aiMessages.appendChild(div);
+  aiMessages.scrollTop = aiMessages.scrollHeight;
+  return div;
+}
+
+function appendTyping() {
+  const div = document.createElement('div');
+  div.className = 'ai-msg assistant';
+  div.innerHTML = `<div class="ai-bubble ai-typing"><span></span><span></span><span></span></div>`;
+  aiMessages.appendChild(div);
+  aiMessages.scrollTop = aiMessages.scrollHeight;
+  return div;
+}
+
+async function sendAiMessage() {
+  const text = aiInput.value.trim();
+  if (!text) return;
+  aiInput.value = '';
+  aiSend.disabled = true;
+  appendMsg('user', text);
+  const typing = appendTyping();
+
+  const context = buildContext();
+  const prompt = `${context}\n\n=== USER QUESTION ===\n${text}`;
+
+  try {
+    const res = await fetch(GEMINI_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+    });
+    const data = await res.json();
+    console.log('gemini response:', data);
+    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || `no response. raw: ${JSON.stringify(data).slice(0,200)}`;
+    typing.remove();
+    appendMsg('assistant', reply);
+  } catch(e) {
+    typing.remove();
+    appendMsg('assistant', 'error connecting to gemini. check your API key or internet.');
+  }
+  aiSend.disabled = false;
+}
 
 window.addEventListener('resize', () => { resize(); resizeMinimap(); if (habitMode) { habitData[habitMonth]?.graphs.forEach((g,gi) => drawGraphCanvas(gi,g)); } });
 loadGraph();
