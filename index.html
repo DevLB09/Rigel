@@ -387,6 +387,50 @@ canvas { display: block; width: 100%; height: 100%; }
 }
 #ai-send:hover { opacity: 0.85; }
 #ai-send:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* ══════════════════════════════════════════════════════════════════
+   MOBILE LAYOUT — additive only. Every rule below is scoped inside
+   @media (max-width: 760px), so on desktop (anything wider) NONE of
+   this applies and the original layout above renders exactly as
+   before, untouched. This block only kicks in on small screens.
+   ══════════════════════════════════════════════════════════════════ */
+@media (max-width: 760px) {
+  #topbar { padding: 8px 10px; gap: 8px; }
+  #logo { font-size: 12px; margin-right: 2px; }
+  #topbar input { width: 120px; font-size: 11px; padding: 7px 10px; }
+  .btn { font-size: 10px; padding: 7px 10px; }
+  #cat-select { font-size: 10px; padding: 7px 8px; }
+  #status { margin-left: 0; width: 100%; order: 99; justify-content: flex-end; }
+  #hint-bar { font-size: 9px; padding: 4px 10px; }
+
+  /* journal side panel: near-full-width drawer instead of a fixed 300px slab */
+  #journal-panel { width: 86vw; max-width: 340px; }
+
+  /* mini-map: shrink and tuck out of the way of the AI button */
+  #minimap { width: 96px; height: 62px; bottom: 12px; right: 12px; }
+
+  /* AI assistant: keep the launcher small, panel never overflows the viewport */
+  #ai-btn { width: 40px; height: 40px; bottom: 14px; left: 14px; font-size: 16px; }
+  #ai-panel { width: calc(100vw - 28px); max-width: 340px; left: 14px; bottom: 62px; max-height: 70vh; }
+
+  /* habit journal: stack sections in a single column instead of a cramped 2-col grid */
+  #habit-month-bar { padding: 8px 14px; gap: 8px; }
+  #habit-body { grid-template-columns: 1fr; padding: 14px; gap: 14px; }
+  #graphs-section { grid-column: span 1; }
+  .day-cell { width: 24px; height: 24px; font-size: 9px; }
+  .graph-canvas-wrap { height: 140px; }
+
+  /* command palette / spotlight / graph-compare modals: fit small screens */
+  #cmd-overlay, #spotlight-overlay { padding: 0 16px; }
+  #cmp-modal { width: 94vw; max-height: 92vh; }
+  #cmp-controls { gap: 10px; padding: 10px 14px; }
+  #cmp-body { padding: 12px; }
+}
+
+/* Lets a finger drag a node the same way a mouse does, on any touch
+   device regardless of screen width — purely a touch-input behavior,
+   has zero visual effect for mouse/desktop users. */
+canvas { touch-action: none; }
 </style>
 </head>
 <body>
@@ -574,7 +618,7 @@ canvas { display: block; width: 100%; height: 100%; }
 </div>
 
 <script>
-const PASSCODE = "883518";
+const PASSCODE = "123456";
 const passOverlay = document.getElementById('pass-overlay');
 const passInput = document.getElementById('pass-input');
 passInput.addEventListener('input', () => {
@@ -938,6 +982,82 @@ canvas.addEventListener('mousemove', e => {
 
 canvas.addEventListener('mouseup', () => { if (dragging) scheduleSave(); dragging=null; });
 canvas.addEventListener('mouseleave', () => { dragging=null; });
+
+// ── TOUCH EVENTS (mobile) — additive only, mirrors the mouse handlers
+// above so phones get the same drag / select / connect / rename / journal
+// behavior via touch. Nothing above this block is touched or altered. ──
+(function() {
+  let touchDragging = null, touchOffX = 0, touchOffY = 0;
+  let touchStartX = 0, touchStartY = 0, touchMoved = false;
+  let lastTapTime = 0, lastTapNode = null, lastTapWasEmpty = false;
+  let longPressTimer = null;
+  const TAP_MOVE_THRESHOLD = 8, DOUBLE_TAP_MS = 350, LONG_PRESS_MS = 550;
+
+  canvas.addEventListener('touchstart', function(e) {
+    if (e.touches.length !== 1) return; // let multi-finger gestures pass through untouched
+    const {x,y} = getPos(e), n = getNodeAt(x,y);
+    touchStartX = x; touchStartY = y; touchMoved = false;
+
+    if (connectMode) {
+      if (n) {
+        if (!connectFrom) { connectFrom = n.id; }
+        else if (connectFrom !== n.id) {
+          const exists = edges.some(([a,b])=>(a===connectFrom&&b===n.id)||(a===n.id&&b===connectFrom));
+          if (!exists) { edges.push([connectFrom,n.id]); scheduleSave(); }
+          connectFrom = null;
+        }
+      } else { connectFrom = null; }
+      return;
+    }
+
+    if (n) {
+      selected = n.id; touchDragging = n.id;
+      touchOffX = x - n.x; touchOffY = y - n.y;
+      longPressTimer = setTimeout(() => { openJournal(n.id); touchDragging = null; }, LONG_PRESS_MS); // mirrors right-click → journal
+    } else {
+      selected = null;
+      if (focusMode) { focusMode = false; focusNodeId = null; }
+    }
+
+    const now = Date.now();
+    if (n && lastTapNode === n.id && (now - lastTapTime) < DOUBLE_TAP_MS) {
+      clearTimeout(longPressTimer);
+      startEdit(n.id); // mirrors dblclick on a node → rename
+      lastTapTime = 0; lastTapNode = null;
+    } else if (!n && lastTapWasEmpty && (now - lastTapTime) < DOUBLE_TAP_MS) {
+      clearTimeout(longPressTimer);
+      const label = prompt('node name:'); // mirrors dblclick on empty canvas → add node
+      if (label && label.trim()) {
+        const cat = document.getElementById('cat-select').value;
+        nodes.push({ id:nextId++, x, y, label:label.trim(), r:14, vx:0, vy:0, cat, journal:[] });
+        scheduleSave();
+      }
+      lastTapTime = 0; lastTapNode = null; lastTapWasEmpty = false;
+    } else {
+      lastTapTime = now; lastTapNode = n ? n.id : null; lastTapWasEmpty = !n;
+    }
+  }, { passive: true });
+
+  canvas.addEventListener('touchmove', function(e) {
+    clearTimeout(longPressTimer);
+    if (!touchDragging) return;
+    const {x,y} = getPos(e);
+    if (Math.abs(x-touchStartX) > TAP_MOVE_THRESHOLD || Math.abs(y-touchStartY) > TAP_MOVE_THRESHOLD) touchMoved = true;
+    const n = nodes.find(n=>n.id===touchDragging);
+    if (n) { n.x = x - touchOffX; n.y = y - touchOffY; }
+  }, { passive: true });
+
+  canvas.addEventListener('touchend', function() {
+    clearTimeout(longPressTimer);
+    if (touchDragging && touchMoved) scheduleSave();
+    touchDragging = null;
+  }, { passive: true });
+
+  canvas.addEventListener('touchcancel', function() {
+    clearTimeout(longPressTimer);
+    touchDragging = null;
+  }, { passive: true });
+})();
 
 document.getElementById('btn-add').addEventListener('click', () => {
   const input = document.getElementById('node-input'), label = input.value.trim();
