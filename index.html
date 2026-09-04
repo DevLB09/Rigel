@@ -622,15 +622,33 @@ function setStatus(type, msg) { statusDot.className = type; statusText.textConte
 async function loadGraph() {
   try {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.main&select=nodes,edges,habit_journal`, { headers });
-    const data = await res.json();
-    if (data && data[0]) {
-      nodes = data[0].nodes || []; edges = data[0].edges || [];
-      nextId = nodes.length ? Math.max(...nodes.map(n => n.id)) + 1 : 1;
-      habitData = data[0].habit_journal || {};
-      if (nodes.length === 0) seedDefault();
-    } else { seedDefault(); }
-    setStatus('saved', 'loaded');
-  } catch(e) { setStatus('error', 'load failed'); seedDefault(); }
+    if (!res.ok) {
+      // Real HTTP error (RLS block, bad table, etc) — surface it, don't nuke local state.
+      const errBody = await res.text().catch(() => '');
+      console.error('loadGraph failed:', res.status, errBody);
+      setStatus('error', `load failed (${res.status})`);
+    } else {
+      const data = await res.json();
+      if (data && data[0]) {
+        nodes = data[0].nodes || []; edges = data[0].edges || [];
+        nextId = nodes.length ? Math.max(...nodes.map(n => n.id)) + 1 : 1;
+        habitData = data[0].habit_journal || {};
+        // Only seed if the row exists AND is genuinely empty — a fresh, real row.
+        if (nodes.length === 0) seedDefault();
+      } else {
+        // No row with id='main' yet. This is the ONLY case where seeding is safe,
+        // and upsertGraph() (used by scheduleSave) will now correctly CREATE it
+        // instead of silently no-op'ing like the old PATCH-only save did.
+        console.warn('No row with id=main found — seeding defaults and creating it.');
+        seedDefault();
+      }
+      setStatus('saved', 'loaded');
+    }
+  } catch(e) {
+    // Network-level failure (offline, CORS, DNS). Do NOT seed/overwrite — just show the error.
+    console.error('loadGraph network error:', e);
+    setStatus('error', 'load failed — offline?');
+  }
   habitMonth = getMonthKey(new Date());
   initMonthSelect();
   loading.style.opacity = '0';
@@ -1086,14 +1104,32 @@ function saveHabit() {
 }
 
 async function saveGraph() {
-  const payload = { nodes: nodes.map(n => ({...n, vx:0, vy:0})), edges, habit_journal: habitData, updated_at: new Date().toISOString() };
+  // id is included in the payload + on_conflict=id makes this an upsert:
+  // creates the row if it doesn't exist yet, updates it if it does.
+  // (The old PATCH-only version silently matched 0 rows and did nothing
+  // if the 'main' row was ever missing — that was the data-wipe bug.)
+  const payload = {
+    id: 'main',
+    nodes: nodes.map(n => ({...n, vx:0, vy:0})), edges, habit_journal: habitData,
+    updated_at: new Date().toISOString()
+  };
   try {
-    await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.main`, {
-      method: 'PATCH', headers: { ...headers, 'Prefer': 'return=minimal' },
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?on_conflict=id`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify(payload)
     });
+    if (!res.ok) {
+      const errBody = await res.text().catch(() => '');
+      console.error('saveGraph failed:', res.status, errBody);
+      setStatus('error', `save failed (${res.status})`);
+      return;
+    }
     setStatus('saved', 'saved ✓'); flashSave();
-  } catch(e) { setStatus('error', 'save failed'); }
+  } catch(e) {
+    console.error('saveGraph network error:', e);
+    setStatus('error', 'save failed — offline?');
+  }
 }
 
 function renderHabitView() {
