@@ -431,6 +431,126 @@ canvas { display: block; width: 100%; height: 100%; }
    device regardless of screen width — purely a touch-input behavior,
    has zero visual effect for mouse/desktop users. */
 canvas { touch-action: none; }
+
+/* ══════════════════════════════════════════════════════════════════
+   PROFILE SYSTEM — fully additive, isolated overlay. Uses the exact
+   same theme variables (--bg, --surface, --border, --accent, --accent2,
+   --font) as the rest of the app so it matches the existing look.
+   ══════════════════════════════════════════════════════════════════ */
+#profile-view {
+  position: fixed; inset: 0; z-index: 900;
+  background: rgba(0,0,0,0.75);
+  display: none; align-items: flex-start; justify-content: center;
+  overflow-y: auto; padding: 24px;
+}
+#profile-view.open { display: flex; }
+#profile-card {
+  position: relative; width: 100%; max-width: 1400px;
+  background: var(--surface); border: 1px solid var(--accent);
+  border-radius: 12px; padding: 32px 40px 12px;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.7);
+}
+#profile-close {
+  position: absolute; top: 14px; right: 16px;
+  background: none; border: none; color: var(--text-dim);
+  font-size: 16px; cursor: pointer;
+}
+#profile-close:hover { color: var(--accent); }
+
+#profile-top { display: flex; gap: 18px; align-items: flex-start; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+#profile-icon-wrap {
+  position: relative; width: 76px; height: 76px; border-radius: 50%;
+  background: var(--bg); border: 1px solid var(--border2);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; overflow: hidden; cursor: pointer;
+}
+#profile-icon-wrap:hover { border-color: var(--accent); }
+#profile-icon-img { width: 100%; height: 100%; object-fit: cover; }
+#profile-icon-placeholder { font-size: 22px; color: var(--text-dim); }
+#profile-icon-input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+
+#profile-id-fields { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+#profile-name-input {
+  font-family: var(--font); font-size: 15px; letter-spacing: 0.06em;
+  background: transparent; border: none; border-bottom: 1px solid var(--border);
+  color: var(--accent); padding: 4px 2px; outline: none; width: 100%;
+}
+#profile-name-input:focus { border-color: var(--accent); }
+#profile-name-input::placeholder { color: var(--text-dim); }
+
+#profile-kv-list { display: flex; flex-wrap: wrap; gap: 6px 14px; }
+.profile-kv-pill {
+  font-size: 11px; color: var(--text-muted); letter-spacing: 0.03em;
+  display: flex; align-items: center; gap: 6px;
+}
+.profile-kv-pill b { color: var(--text); font-weight: 500; }
+.profile-kv-pill button {
+  background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 10px; padding: 0;
+}
+.profile-kv-pill button:hover { color: #e24b4a; }
+
+.profile-kv-row { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+.profile-kv-sep { color: var(--text-dim); font-size: 11px; }
+.profile-kv-row input, .profile-add-row input {
+  font-family: var(--font); font-size: 11px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 4px; color: var(--text);
+  padding: 5px 8px; outline: none;
+}
+.profile-kv-row input:focus, .profile-add-row input:focus { border-color: var(--accent); }
+.profile-kv-row input:nth-child(1) { width: 110px; }
+.profile-kv-row input:nth-child(3) { flex: 1; }
+
+#profile-body {
+  padding: 20px 0 24px;
+  display: grid; grid-template-columns: 1fr; gap: 18px;
+}
+
+#profile-spider-body { align-items: center; }
+#profile-spider-canvas { display: block; margin: 4px auto 2px; max-width: 240px; width: 100%; height: auto; }
+#profile-spider-list { width: 100%; max-width: 420px; margin: 0 auto; display: flex; flex-direction: column; gap: 6px; }
+.profile-spider-row, .profile-bar-row, .profile-ring-row {
+  display: flex; align-items: center; gap: 10px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 8px 10px;
+}
+.profile-spider-row .p-label, .profile-bar-row .p-label { font-size: 11px; color: var(--text); min-width: 90px; letter-spacing: 0.03em; }
+.profile-spider-row .p-value, .profile-bar-row .p-value { font-size: 10px; color: var(--accent2); min-width: 44px; text-align: right; }
+.p-del { background: none; border: none; color: var(--text-dim); cursor: pointer; font-size: 11px; padding: 0 2px; }
+.p-del:hover { color: #e24b4a; }
+
+.profile-bar-track {
+  flex: 1; height: 8px; border-radius: 4px; background: var(--border);
+  overflow: hidden; position: relative;
+}
+.profile-bar-fill {
+  height: 100%; border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2));
+}
+
+#profile-rings-list { flex-direction: row !important; flex-wrap: wrap; gap: 16px !important; justify-content: flex-start; }
+.profile-ring-row { flex-direction: column; align-items: center; gap: 6px; min-width: 96px; padding: 12px 10px; }
+.profile-ring-row .p-label { min-width: 0; text-align: center; }
+.profile-ring-svg { width: 72px; height: 72px; }
+.profile-ring-bg { fill: none; stroke: var(--border); stroke-width: 8; }
+.profile-ring-fg { fill: none; stroke: var(--accent); stroke-width: 8; stroke-linecap: round; transition: stroke-dashoffset 0.3s; }
+.profile-ring-pct { font-size: 13px; color: var(--accent2); }
+
+.profile-add-row { display: flex; gap: 8px; align-items: center; padding-top: 6px; flex-wrap: wrap; width: 100%; }
+.profile-add-row input[type=text], .profile-add-row input:not([type]) { flex: 1; min-width: 90px; }
+.profile-add-row input[type=number] { width: 70px; }
+
+@media (max-width: 760px) {
+  #profile-view { padding: 16px 8px; }
+  #profile-card { padding: 20px 16px 8px; max-width: 100%; }
+  #profile-top { flex-direction: column; align-items: center; text-align: center; gap: 10px; }
+  #profile-id-fields { align-items: center; width: 100%; }
+  #profile-kv-list { justify-content: center; }
+  .profile-kv-row { flex-wrap: wrap; justify-content: center; }
+  #profile-body { grid-template-columns: 1fr; gap: 14px; }
+  #profile-spider-section, #profile-ring-section { grid-column: span 1; }
+  #profile-spider-canvas { width: 100%; height: auto; }
+  .profile-add-row input, .profile-add-row button { font-size: 11px; }
+  #profile-rings-list { justify-content: center; }
+}
 </style>
 </head>
 <body>
@@ -459,6 +579,7 @@ canvas { touch-action: none; }
     <button class="btn" id="btn-search">⌕ search</button>
     <button class="btn" id="btn-cmd">⌘ commands</button>
     <button class="btn" id="btn-habit">◫ habit journal</button>
+    <button class="btn" id="btn-profile">☺ profile</button>
     <div id="status"><div id="status-dot"></div><span id="status-text">ready</span></div>
   </div>
   <div id="hint-bar">drag · click to select · double-click canvas to add · double-click node to rename · right-click node for journal</div>
@@ -613,6 +734,76 @@ canvas { touch-action: none; }
     </div>
     <div id="cmp-body">
       <div id="cmp-canvas-wrap"><canvas id="cmp-canvas"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     PROFILE SYSTEM — fully additive overlay. Sits on top of everything
+     as its own fixed-position layer; opening/closing it never touches
+     graph-view or habit-view, and their toggle logic is untouched.
+     ══════════════════════════════════════════════════════════════════ -->
+<div id="profile-view">
+  <div id="profile-card">
+    <button id="profile-close">✕</button>
+
+    <div id="profile-top">
+      <div id="profile-icon-wrap">
+        <img id="profile-icon-img" style="display:none"/>
+        <span id="profile-icon-placeholder">+</span>
+        <input type="file" id="profile-icon-input" accept="image/*"/>
+      </div>
+      <div id="profile-id-fields">
+        <input id="profile-name-input" placeholder="name" maxlength="40"/>
+        <div id="profile-kv-list"></div>
+        <div class="profile-kv-row">
+          <input id="profile-kv-key" placeholder="x (e.g. age)" maxlength="20"/>
+          <span class="profile-kv-sep">:</span>
+          <input id="profile-kv-val" placeholder="y (e.g. 24)" maxlength="24"/>
+          <button class="habit-add-btn" id="profile-kv-add-btn">+ add</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="profile-body">
+      <!-- SPIDER / RADAR CHART -->
+      <div class="habit-section" id="profile-spider-section">
+        <div class="habit-section-header"><span class="habit-section-title">ATTRIBUTES</span></div>
+        <div class="habit-section-body" id="profile-spider-body">
+          <canvas id="profile-spider-canvas"></canvas>
+          <div id="profile-spider-list"></div>
+          <div class="profile-add-row">
+            <input id="profile-spider-name" placeholder="attribute name..." maxlength="20"/>
+            <input id="profile-spider-value" type="number" placeholder="value"/>
+            <input id="profile-spider-max" type="number" placeholder="max"/>
+            <button class="habit-add-btn" id="profile-spider-add-btn">+ add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- BAR CHARTS -->
+      <div class="habit-section" id="profile-bar-section">
+        <div class="habit-section-header"><span class="habit-section-title">STATS</span></div>
+        <div class="habit-section-body" id="profile-bars-list"></div>
+        <div class="profile-add-row" style="padding:10px 16px;border-top:1px solid var(--border);flex-shrink:0;">
+          <input id="profile-bar-name" placeholder="stat name..." maxlength="20"/>
+          <input id="profile-bar-value" type="number" placeholder="value"/>
+          <input id="profile-bar-max" type="number" placeholder="max"/>
+          <button class="habit-add-btn" id="profile-bar-add-btn">+ add</button>
+        </div>
+      </div>
+
+      <!-- CIRCULAR PROGRESS RINGS -->
+      <div class="habit-section" id="profile-ring-section">
+        <div class="habit-section-header"><span class="habit-section-title">PROGRESS</span></div>
+        <div class="habit-section-body" id="profile-rings-list"></div>
+        <div class="profile-add-row" style="padding:10px 16px;border-top:1px solid var(--border);flex-shrink:0;">
+          <input id="profile-ring-name" placeholder="ring label..." maxlength="20"/>
+          <input id="profile-ring-value" type="number" placeholder="value"/>
+          <input id="profile-ring-max" type="number" placeholder="max"/>
+          <button class="habit-add-btn" id="profile-ring-add-btn">+ add</button>
+        </div>
+      </div>
     </div>
   </div>
 </div>
@@ -1474,7 +1665,7 @@ function showGraphView() {
 document.getElementById('btn-habit').addEventListener('click', () => { habitMode ? showGraphView() : showHabitView(); });
 
 // ── RIGEL AI ASSISTANT ──
-const GROQ_KEY = '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';
+const GROQ_KEY = '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';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 const aiBtn = document.getElementById('ai-btn');
@@ -1761,6 +1952,248 @@ function drawCompareGraph(c, points, ox, oy, w, h, color, title, dashed = false)
 }
 
 window.addEventListener('resize', () => { resize(); resizeMinimap(); if (habitMode) { habitData[habitMonth]?.graphs.forEach((g,gi) => drawGraphCanvas(gi,g)); } });
+
+// ══════════════════════════════════════════════════════════════════
+// PROFILE SYSTEM — fully additive. Persists to its own row (id='profile')
+// in the SAME graph_data table, reusing the habit_journal jsonb column
+// as a generic data slot. Never reads/writes the id='main' row, so it
+// cannot interfere with loadGraph()/saveGraph() above in any way.
+// ══════════════════════════════════════════════════════════════════
+let profileData = { name: '', icon: '', kv: [], spider: [], bars: [], rings: [] };
+let profileSaveTimer = null;
+
+async function loadProfile() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.profile&select=habit_journal`, { headers });
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data[0] && data[0].habit_journal) {
+        profileData = Object.assign({ name:'', icon:'', kv:[], spider:[], bars:[], rings:[] }, data[0].habit_journal);
+      }
+    } else {
+      console.error('loadProfile failed:', res.status, await res.text().catch(()=>''));
+    }
+  } catch(e) { console.error('loadProfile network error:', e); }
+  renderProfileView();
+}
+
+async function saveProfile() {
+  const payload = { id: 'profile', nodes: [], edges: [], habit_journal: profileData, updated_at: new Date().toISOString() };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?on_conflict=id`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) console.error('saveProfile failed:', res.status, await res.text().catch(()=>''));
+  } catch(e) { console.error('saveProfile network error:', e); }
+}
+
+function scheduleProfileSave() {
+  renderProfileView();
+  clearTimeout(profileSaveTimer);
+  profileSaveTimer = setTimeout(saveProfile, 500);
+}
+
+function showProfileView() {
+  document.getElementById('profile-view').classList.add('open');
+  renderProfileView();
+}
+function hideProfileView() {
+  document.getElementById('profile-view').classList.remove('open');
+}
+document.getElementById('btn-profile').addEventListener('click', showProfileView);
+document.getElementById('profile-close').addEventListener('click', hideProfileView);
+document.getElementById('profile-view').addEventListener('mousedown', e => { if (e.target === document.getElementById('profile-view')) hideProfileView(); });
+
+// ── identity: icon, name, x:y fields ──
+document.getElementById('profile-name-input').addEventListener('input', e => { profileData.name = e.target.value; scheduleProfileSaveDebounced(); });
+let nameDebounce = null;
+function scheduleProfileSaveDebounced() { clearTimeout(nameDebounce); nameDebounce = setTimeout(() => { clearTimeout(profileSaveTimer); profileSaveTimer = setTimeout(saveProfile, 500); }, 200); }
+
+document.getElementById('profile-icon-input').addEventListener('change', e => {
+  const file = e.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = () => { profileData.icon = reader.result; scheduleProfileSave(); };
+  reader.readAsDataURL(file);
+});
+
+document.getElementById('profile-kv-add-btn').addEventListener('click', () => {
+  const k = document.getElementById('profile-kv-key').value.trim();
+  const v = document.getElementById('profile-kv-val').value.trim();
+  if (!k || !v) return;
+  profileData.kv.push({ k, v });
+  document.getElementById('profile-kv-key').value = ''; document.getElementById('profile-kv-val').value = '';
+  scheduleProfileSave();
+});
+document.getElementById('profile-kv-val').addEventListener('keydown', e => { if (e.key==='Enter') document.getElementById('profile-kv-add-btn').click(); });
+
+// ── spider / radar chart ──
+document.getElementById('profile-spider-add-btn').addEventListener('click', () => {
+  const label = document.getElementById('profile-spider-name').value.trim();
+  const value = parseFloat(document.getElementById('profile-spider-value').value);
+  const max = parseFloat(document.getElementById('profile-spider-max').value);
+  if (!label || isNaN(value) || isNaN(max) || max <= 0) return;
+  profileData.spider.push({ label, value, max });
+  document.getElementById('profile-spider-name').value = '';
+  document.getElementById('profile-spider-value').value = '';
+  document.getElementById('profile-spider-max').value = '';
+  scheduleProfileSave();
+});
+
+function drawSpiderChart() {
+  const cvs = document.getElementById('profile-spider-canvas');
+  const size = 320; cvs.width = size; cvs.height = size;
+  const c = cvs.getContext('2d');
+  c.clearRect(0,0,size,size);
+  const items = profileData.spider;
+  const cx = size/2, cy = size/2, R = size/2 - 46;
+  if (items.length < 3) {
+    c.font = '11px IBM Plex Mono, monospace'; c.fillStyle = '#555'; c.textAlign = 'center';
+    c.fillText('add at least 3 attributes', cx, cy);
+    return;
+  }
+  const N = items.length;
+  const angleFor = i => -Math.PI/2 + i*(2*Math.PI/N);
+
+  // grid rings
+  c.strokeStyle = '#2a2a2a'; c.lineWidth = 1;
+  for (let ring = 1; ring <= 4; ring++) {
+    const rr = R * (ring/4);
+    c.beginPath();
+    for (let i = 0; i <= N; i++) {
+      const a = angleFor(i % N), x = cx + rr*Math.cos(a), y = cy + rr*Math.sin(a);
+      if (i===0) c.moveTo(x,y); else c.lineTo(x,y);
+    }
+    c.stroke();
+  }
+  // axes + labels
+  c.strokeStyle = '#333'; c.font = '10px IBM Plex Mono, monospace'; c.fillStyle = '#c8c8c8';
+  items.forEach((it,i) => {
+    const a = angleFor(i);
+    c.beginPath(); c.moveTo(cx,cy); c.lineTo(cx+R*Math.cos(a), cy+R*Math.sin(a)); c.stroke();
+    const lx = cx + (R+20)*Math.cos(a), ly = cy + (R+20)*Math.sin(a);
+    c.textAlign = Math.cos(a) > 0.3 ? 'left' : Math.cos(a) < -0.3 ? 'right' : 'center';
+    c.fillText(it.label, lx, ly);
+    c.fillStyle = '#7f77dd'; c.font = '9px IBM Plex Mono, monospace';
+    c.fillText(String(it.value), lx, ly+12);
+    c.fillStyle = '#c8c8c8'; c.font = '10px IBM Plex Mono, monospace';
+  });
+  // data polygon
+  c.beginPath();
+  items.forEach((it,i) => {
+    const a = angleFor(i), pct = Math.max(0, Math.min(1, it.value/it.max)), rr = R*pct;
+    const x = cx+rr*Math.cos(a), y = cy+rr*Math.sin(a);
+    if (i===0) c.moveTo(x,y); else c.lineTo(x,y);
+  });
+  c.closePath();
+  c.fillStyle = 'rgba(127,119,221,0.25)'; c.fill();
+  c.strokeStyle = '#7f77dd'; c.lineWidth = 2; c.stroke();
+  items.forEach((it,i) => {
+    const a = angleFor(i), pct = Math.max(0, Math.min(1, it.value/it.max)), rr = R*pct;
+    const x = cx+rr*Math.cos(a), y = cy+rr*Math.sin(a);
+    c.beginPath(); c.arc(x,y,3,0,Math.PI*2); c.fillStyle = '#7f77dd'; c.fill();
+  });
+}
+
+function renderSpiderList() {
+  const el = document.getElementById('profile-spider-list');
+  el.innerHTML = profileData.spider.map((it,i) => `
+    <div class="profile-spider-row">
+      <span class="p-label">${it.label}</span>
+      <span class="p-value">${it.value}/${it.max}</span>
+      <button class="p-del" data-idx="${i}">✕</button>
+    </div>`).join('');
+  el.querySelectorAll('.p-del').forEach(btn => btn.addEventListener('click', () => {
+    profileData.spider.splice(+btn.dataset.idx, 1); scheduleProfileSave();
+  }));
+}
+
+// ── bar charts ──
+document.getElementById('profile-bar-add-btn').addEventListener('click', () => {
+  const label = document.getElementById('profile-bar-name').value.trim();
+  const value = parseFloat(document.getElementById('profile-bar-value').value);
+  const max = parseFloat(document.getElementById('profile-bar-max').value);
+  if (!label || isNaN(value) || isNaN(max) || max <= 0) return;
+  profileData.bars.push({ label, value, max });
+  document.getElementById('profile-bar-name').value = '';
+  document.getElementById('profile-bar-value').value = '';
+  document.getElementById('profile-bar-max').value = '';
+  scheduleProfileSave();
+});
+
+function renderBars() {
+  const el = document.getElementById('profile-bars-list');
+  if (!profileData.bars.length) { el.innerHTML = '<div style="font-size:11px;color:var(--text-dim);text-align:center;padding:10px 0;">no stats yet</div>'; return; }
+  el.innerHTML = profileData.bars.map((it,i) => {
+    const pct = Math.max(0, Math.min(100, (it.value/it.max)*100));
+    return `
+    <div class="profile-bar-row">
+      <span class="p-label">${it.label}</span>
+      <div class="profile-bar-track"><div class="profile-bar-fill" style="width:${pct}%"></div></div>
+      <span class="p-value">${it.value}/${it.max}</span>
+      <button class="p-del" data-idx="${i}">✕</button>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.p-del').forEach(btn => btn.addEventListener('click', () => {
+    profileData.bars.splice(+btn.dataset.idx, 1); scheduleProfileSave();
+  }));
+}
+
+// ── circular progress rings ──
+document.getElementById('profile-ring-add-btn').addEventListener('click', () => {
+  const label = document.getElementById('profile-ring-name').value.trim();
+  const value = parseFloat(document.getElementById('profile-ring-value').value);
+  const max = parseFloat(document.getElementById('profile-ring-max').value);
+  if (!label || isNaN(value) || isNaN(max) || max <= 0) return;
+  profileData.rings.push({ label, value, max });
+  document.getElementById('profile-ring-name').value = '';
+  document.getElementById('profile-ring-value').value = '';
+  document.getElementById('profile-ring-max').value = '';
+  scheduleProfileSave();
+});
+
+function renderRings() {
+  const el = document.getElementById('profile-rings-list');
+  const CIRC = 2 * Math.PI * 32;
+  if (!profileData.rings.length) { el.innerHTML = '<div style="font-size:11px;color:var(--text-dim);text-align:center;padding:10px 0;width:100%;">no progress rings yet</div>'; return; }
+  el.innerHTML = profileData.rings.map((it,i) => {
+    const pct = Math.max(0, Math.min(1, it.value/it.max));
+    const offset = CIRC - pct*CIRC;
+    return `
+    <div class="profile-ring-row">
+      <svg class="profile-ring-svg" viewBox="0 0 80 80">
+        <circle class="profile-ring-bg" cx="40" cy="40" r="32"></circle>
+        <circle class="profile-ring-fg" cx="40" cy="40" r="32" stroke-dasharray="${CIRC}" stroke-dashoffset="${offset}" transform="rotate(-90 40 40)"></circle>
+      </svg>
+      <span class="profile-ring-pct">${Math.round(pct*100)}%</span>
+      <span class="p-label">${it.label}</span>
+      <button class="p-del" data-idx="${i}">✕</button>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.p-del').forEach(btn => btn.addEventListener('click', () => {
+    profileData.rings.splice(+btn.dataset.idx, 1); scheduleProfileSave();
+  }));
+}
+
+function renderProfileView() {
+  document.getElementById('profile-name-input').value = profileData.name || '';
+  const iconImg = document.getElementById('profile-icon-img'), iconPh = document.getElementById('profile-icon-placeholder');
+  if (profileData.icon) { iconImg.src = profileData.icon; iconImg.style.display = 'block'; iconPh.style.display = 'none'; }
+  else { iconImg.style.display = 'none'; iconPh.style.display = 'block'; }
+
+  const kvEl = document.getElementById('profile-kv-list');
+  kvEl.innerHTML = profileData.kv.map((pair,i) => `
+    <span class="profile-kv-pill">${pair.k}: <b>${pair.v}</b> <button data-idx="${i}">✕</button></span>`).join('');
+  kvEl.querySelectorAll('button').forEach(btn => btn.addEventListener('click', () => {
+    profileData.kv.splice(+btn.dataset.idx, 1); scheduleProfileSave();
+  }));
+
+  renderSpiderList(); drawSpiderChart();
+  renderBars(); renderRings();
+}
+
+loadProfile();
 loadGraph();
 </script>
 </body>
