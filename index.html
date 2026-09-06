@@ -456,6 +456,15 @@ canvas { touch-action: none; }
   font-size: 16px; cursor: pointer;
 }
 #profile-close:hover { color: var(--accent); }
+#profile-status {
+  position: absolute; top: 16px; right: 44px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; color: var(--text-dim); letter-spacing: 0.03em;
+}
+#profile-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); transition: background 0.3s; }
+#profile-status-dot.saving { background: #ef9f27; }
+#profile-status-dot.saved { background: var(--accent2); }
+#profile-status-dot.error { background: #e24b4a; }
 
 #profile-top { display: flex; gap: 18px; align-items: flex-start; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
 #profile-icon-wrap {
@@ -746,6 +755,7 @@ canvas { touch-action: none; }
 <div id="profile-view">
   <div id="profile-card">
     <button id="profile-close">✕</button>
+    <div id="profile-status"><span id="profile-status-dot"></span><span id="profile-status-text">loading...</span></div>
 
     <div id="profile-top">
       <div id="profile-icon-wrap">
@@ -1665,7 +1675,7 @@ function showGraphView() {
 document.getElementById('btn-habit').addEventListener('click', () => { habitMode ? showGraphView() : showHabitView(); });
 
 // ── RIGEL AI ASSISTANT ──
-const GROQ_KEY = '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';
+const GROQ_KEY = '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';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 const aiBtn = document.getElementById('ai-btn');
@@ -1962,31 +1972,55 @@ window.addEventListener('resize', () => { resize(); resizeMinimap(); if (habitMo
 let profileData = { name: '', icon: '', kv: [], spider: [], bars: [], rings: [] };
 let profileSaveTimer = null;
 
+function setProfileStatus(type, msg) {
+  const dot = document.getElementById('profile-status-dot'), txt = document.getElementById('profile-status-text');
+  if (dot) dot.className = type;
+  if (txt) txt.textContent = msg;
+}
+
+const PROFILE_TABLE = 'profile_data';
+
 async function loadProfile() {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?id=eq.profile&select=habit_journal`, { headers });
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${PROFILE_TABLE}?id=eq.profile&select=data`, { headers });
     if (res.ok) {
-      const data = await res.json();
-      if (data && data[0] && data[0].habit_journal) {
-        profileData = Object.assign({ name:'', icon:'', kv:[], spider:[], bars:[], rings:[] }, data[0].habit_journal);
+      const rows = await res.json();
+      if (rows && rows[0] && rows[0].data) {
+        profileData = Object.assign({ name:'', icon:'', kv:[], spider:[], bars:[], rings:[] }, rows[0].data);
       }
+      setProfileStatus('saved', 'loaded');
     } else {
-      console.error('loadProfile failed:', res.status, await res.text().catch(()=>''));
+      const body = await res.text().catch(()=>'');
+      console.error('loadProfile failed:', res.status, body);
+      setProfileStatus('error', `load failed (${res.status})`);
     }
-  } catch(e) { console.error('loadProfile network error:', e); }
+  } catch(e) {
+    console.error('loadProfile network error:', e);
+    setProfileStatus('error', 'load failed — offline?');
+  }
   renderProfileView();
 }
 
 async function saveProfile() {
-  const payload = { id: 'profile', nodes: [], edges: [], habit_journal: profileData, updated_at: new Date().toISOString() };
+  setProfileStatus('saving', 'saving...');
+  const payload = { id: 'profile', data: profileData, updated_at: new Date().toISOString() };
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/${TABLE}?on_conflict=id`, {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${PROFILE_TABLE}?on_conflict=id`, {
       method: 'POST',
       headers: { ...headers, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
       body: JSON.stringify(payload)
     });
-    if (!res.ok) console.error('saveProfile failed:', res.status, await res.text().catch(()=>''));
-  } catch(e) { console.error('saveProfile network error:', e); }
+    if (!res.ok) {
+      const body = await res.text().catch(()=>'');
+      console.error('saveProfile failed:', res.status, body);
+      setProfileStatus('error', `save failed (${res.status})`);
+    } else {
+      setProfileStatus('saved', 'saved ✓');
+    }
+  } catch(e) {
+    console.error('saveProfile network error:', e);
+    setProfileStatus('error', 'save failed — offline?');
+  }
 }
 
 function scheduleProfileSave() {
