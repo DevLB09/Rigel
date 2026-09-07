@@ -388,6 +388,21 @@ canvas { display: block; width: 100%; height: 100%; }
 #ai-send:hover { opacity: 0.85; }
 #ai-send:disabled { opacity: 0.4; cursor: not-allowed; }
 
+/* AI confirm/cancel bubble for destructive actions (delete/rename) */
+.ai-confirm-bubble { display: flex; flex-direction: column; gap: 8px; }
+.ai-confirm-text { font-size: 11px; line-height: 1.55; }
+.ai-confirm-row { display: flex; gap: 8px; }
+.ai-confirm-btn, .ai-cancel-btn {
+  font-family: var(--font); font-size: 10px; padding: 5px 12px;
+  border-radius: 5px; cursor: pointer; letter-spacing: 0.03em;
+  border: 1px solid var(--border2); transition: opacity 0.15s, border-color 0.15s, color 0.15s;
+}
+.ai-confirm-btn { background: var(--accent); color: #fff; border-color: var(--accent); }
+.ai-confirm-btn:hover { opacity: 0.85; }
+.ai-cancel-btn { background: transparent; color: var(--text-dim); }
+.ai-cancel-btn:hover { border-color: #e24b4a; color: #e24b4a; }
+.ai-confirm-btn:disabled, .ai-cancel-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
 /* ══════════════════════════════════════════════════════════════════
    MOBILE LAYOUT — additive only. Every rule below is scoped inside
    @media (max-width: 760px), so on desktop (anything wider) NONE of
@@ -1699,6 +1714,234 @@ document.querySelectorAll('.ai-suggestion').forEach(btn => {
 aiInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendAiMessage(); } });
 aiSend.addEventListener('click', sendAiMessage);
 
+// ── AI ACTION TOOLS — lets the assistant actually perform commands
+// (add/rename/delete nodes, journal entries, habit goals, etc) instead
+// of only answering questions. Everything here reuses the exact same
+// state (nodes/edges/habitData) and save functions as the rest of the
+// app, so anything the AI does is saved and rendered identically to a
+// manual edit. Destructive actions (delete_node, rename_node) are
+// gated behind an in-chat confirm/cancel prompt — see
+// appendConfirmation()/resolveAiConfirmation() below — instead of
+// executing immediately. ──
+function findNodeByLabel(label) {
+  if (!label) return null;
+  const lower = String(label).toLowerCase().trim();
+  return nodes.find(n => n.label.toLowerCase() === lower)
+      || nodes.find(n => n.label.toLowerCase().includes(lower))
+      || null;
+}
+function findGoal(name, monthKey) {
+  const data = habitData[monthKey]; if (!data || !name) return null;
+  const lower = String(name).toLowerCase().trim();
+  return data.goals.find(g => g.name.toLowerCase() === lower)
+      || data.goals.find(g => g.name.toLowerCase().includes(lower))
+      || null;
+}
+
+const AI_TOOLS = [
+  { type:'function', function:{ name:'add_node', description:'Add a new node to the graph.', parameters:{ type:'object', properties:{
+    label:{ type:'string', description:'Name of the new node, e.g. "fall trip 2026"' },
+    category:{ type:'string', enum:['default','work','ideas','personal'], description:'Category/color. Default if unsure.' },
+    connect_to:{ type:'string', description:'Optional: label of an existing node to connect this new node to.' }
+  }, required:['label'] } } },
+  { type:'function', function:{ name:'rename_node', description:'Rename an existing node. This is a destructive-ish action — the user must confirm it in the UI before it takes effect.', parameters:{ type:'object', properties:{
+    node:{ type:'string', description:'Current label of the node' }, new_label:{ type:'string' }
+  }, required:['node','new_label'] } } },
+  { type:'function', function:{ name:'delete_node', description:'Delete an existing node and its connections. Destructive — the user must confirm it in the UI before it takes effect.', parameters:{ type:'object', properties:{
+    node:{ type:'string', description:'Label of the node to delete' }
+  }, required:['node'] } } },
+  { type:'function', function:{ name:'connect_nodes', description:'Create a connection between two existing nodes.', parameters:{ type:'object', properties:{
+    node_a:{ type:'string' }, node_b:{ type:'string' }
+  }, required:['node_a','node_b'] } } },
+  { type:'function', function:{ name:'add_node_journal_entry', description:"Add a journal/content entry to a specific node's journal.", parameters:{ type:'object', properties:{
+    node:{ type:'string' }, text:{ type:'string' }
+  }, required:['node','text'] } } },
+  { type:'function', function:{ name:'add_habit_moment', description:'Add a memorable-moment entry to the habit journal for a given day.', parameters:{ type:'object', properties:{
+    day:{ type:'integer' }, text:{ type:'string' }, month:{ type:'string', description:'YYYY-MM, defaults to the currently viewed month' }
+  }, required:['day','text'] } } },
+  { type:'function', function:{ name:'add_habit_goal', description:'Add a new daily-tracked habit goal.', parameters:{ type:'object', properties:{
+    name:{ type:'string' }, month:{ type:'string' }
+  }, required:['name'] } } },
+  { type:'function', function:{ name:'remove_habit_goal', description:'Remove an existing habit goal.', parameters:{ type:'object', properties:{
+    name:{ type:'string' }, month:{ type:'string' }
+  }, required:['name'] } } },
+  { type:'function', function:{ name:'toggle_goal_day', description:"Check or uncheck a specific day for a habit goal (mark it done/not done).", parameters:{ type:'object', properties:{
+    goal:{ type:'string' }, day:{ type:'integer' }, done:{ type:'boolean', description:'true = mark done, false = uncheck' }, month:{ type:'string' }
+  }, required:['goal','day','done'] } } }
+];
+
+// ── Actual mutation logic for delete/rename, extracted out so both the
+// (now confirmation-gated) tool handler AND the confirm-button click
+// handler can call the exact same code path. ──
+function performDeleteNode(args) {
+  const n = findNodeByLabel(args.node);
+  if (!n) return `couldn't find a node matching "${args.node}".`;
+  if (n.id === 1 && n.label === 'me') return `can't delete the "me" node.`;
+  nodes = nodes.filter(x => x.id !== n.id);
+  edges = edges.filter(([a,b]) => a !== n.id && b !== n.id);
+  if (selected === n.id) selected = null;
+  scheduleSave();
+  return `deleted node "${n.label}".`;
+}
+function performRenameNode(args) {
+  const n = findNodeByLabel(args.node);
+  if (!n) return `couldn't find a node matching "${args.node}".`;
+  const old = n.label; n.label = args.new_label; scheduleSave();
+  return `renamed "${old}" to "${args.new_label}".`;
+}
+
+// ── Confirmation UI: renders a small confirm/cancel bubble in the AI
+// chat. The pending action's real name+args are stashed in
+// aiPendingActions, keyed by a one-off id, and only actually run when
+// the user clicks "confirm". Clicking either button disables both
+// buttons and appends a result line to the same bubble. ──
+let aiConfirmSeq = 0;
+const aiPendingActions = {};
+
+function appendConfirmation(name, args, descriptionHtml) {
+  const id = 'confirm-' + (++aiConfirmSeq);
+  aiPendingActions[id] = { name, args };
+
+  const div = document.createElement('div');
+  div.className = 'ai-msg assistant';
+  div.innerHTML = `
+    <div class="ai-bubble ai-confirm-bubble">
+      <div class="ai-confirm-text">${descriptionHtml}</div>
+      <div class="ai-confirm-row">
+        <button class="ai-confirm-btn" data-id="${id}">confirm</button>
+        <button class="ai-cancel-btn" data-id="${id}">cancel</button>
+      </div>
+    </div>`;
+  aiMessages.appendChild(div);
+  aiMessages.scrollTop = aiMessages.scrollHeight;
+
+  div.querySelector('.ai-confirm-btn').addEventListener('click', () => resolveAiConfirmation(id, true, div));
+  div.querySelector('.ai-cancel-btn').addEventListener('click', () => resolveAiConfirmation(id, false, div));
+  return id;
+}
+
+function resolveAiConfirmation(id, confirmed, bubbleDiv) {
+  const action = aiPendingActions[id];
+  if (!action) return;
+  delete aiPendingActions[id];
+
+  const row = bubbleDiv.querySelector('.ai-confirm-row');
+  const textEl = bubbleDiv.querySelector('.ai-confirm-text');
+  if (row) {
+    row.querySelectorAll('button').forEach(b => b.disabled = true);
+  }
+
+  if (!confirmed) {
+    if (textEl) textEl.innerHTML += `<br><span style="color:var(--text-dim);">— cancelled, nothing changed.</span>`;
+    if (row) row.remove();
+    return;
+  }
+
+  let result = 'done.';
+  if (action.name === 'delete_node') result = performDeleteNode(action.args);
+  else if (action.name === 'rename_node') result = performRenameNode(action.args);
+  if (textEl) textEl.innerHTML += `<br><span style="color:var(--accent2);">— ${result}</span>`;
+  if (row) row.remove();
+  aiMessages.scrollTop = aiMessages.scrollHeight;
+}
+
+function executeAiTool(name, args) {
+  args = args || {};
+  try {
+    switch (name) {
+      case 'add_node': {
+        const cx = wrap.clientWidth/2, cy = wrap.clientHeight/2;
+        const cat = ['default','work','ideas','personal'].includes(args.category) ? args.category : 'default';
+        const n = { id: nextId++, x: cx+(Math.random()-.5)*150, y: cy+(Math.random()-.5)*150, label: args.label, r:14, vx:0, vy:0, cat, journal:[] };
+        nodes.push(n);
+        let extra = '';
+        if (args.connect_to) {
+          const target = findNodeByLabel(args.connect_to);
+          if (target) { edges.push([n.id, target.id]); extra = ` and connected it to "${target.label}"`; }
+        }
+        scheduleSave();
+        return `added node "${args.label}"${extra}.`;
+      }
+      case 'rename_node': {
+        const n = findNodeByLabel(args.node);
+        if (!n) return `couldn't find a node matching "${args.node}".`;
+        appendConfirmation('rename_node', args, `rename <b>"${n.label}"</b> to <b>"${args.new_label}"</b>?`);
+        return `I've shown the user a confirmation prompt to rename "${n.label}" to "${args.new_label}" — this has NOT happened yet, it's waiting on their click.`;
+      }
+      case 'delete_node': {
+        const n = findNodeByLabel(args.node);
+        if (!n) return `couldn't find a node matching "${args.node}".`;
+        if (n.id === 1 && n.label === 'me') return `can't delete the "me" node.`;
+        appendConfirmation('delete_node', args, `delete node <b>"${n.label}"</b> and all its connections?`);
+        return `I've shown the user a confirmation prompt to delete "${n.label}" — this has NOT happened yet, it's waiting on their click.`;
+      }
+      case 'connect_nodes': {
+        const a = findNodeByLabel(args.node_a), b = findNodeByLabel(args.node_b);
+        if (!a || !b) return `couldn't find both nodes ("${args.node_a}", "${args.node_b}").`;
+        const exists = edges.some(([x,y]) => (x===a.id&&y===b.id)||(x===b.id&&y===a.id));
+        if (!exists) edges.push([a.id, b.id]);
+        scheduleSave();
+        return `connected "${a.label}" and "${b.label}".`;
+      }
+      case 'add_node_journal_entry': {
+        const n = findNodeByLabel(args.node);
+        if (!n) return `couldn't find a node matching "${args.node}".`;
+        if (!n.journal) n.journal = [];
+        const now = new Date();
+        const date = now.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' });
+        n.journal.push({ date, text: args.text });
+        if (journalNodeId === n.id) renderJournalEntries(n);
+        scheduleSave();
+        return `added a journal entry to "${n.label}".`;
+      }
+      case 'add_habit_moment': {
+        const month = args.month || habitMonth;
+        ensureMonth(month);
+        habitData[month].moments.push({ day: args.day, text: args.text });
+        if (month === habitMonth) renderMoments();
+        saveHabit();
+        return `added a memorable moment on day ${args.day}.`;
+      }
+      case 'add_habit_goal': {
+        const month = args.month || habitMonth;
+        ensureMonth(month);
+        if (findGoal(args.name, month)) return `a goal like "${args.name}" already exists.`;
+        habitData[month].goals.push({ name: args.name, days: [] });
+        if (month === habitMonth) renderGoals();
+        saveHabit();
+        return `added goal "${args.name}".`;
+      }
+      case 'remove_habit_goal': {
+        const month = args.month || habitMonth;
+        const data = habitData[month]; if (!data) return `no habit data for that month.`;
+        const g = findGoal(args.name, month);
+        if (!g) return `couldn't find a goal matching "${args.name}".`;
+        data.goals = data.goals.filter(x => x !== g);
+        if (month === habitMonth) renderGoals();
+        saveHabit();
+        return `removed goal "${g.name}".`;
+      }
+      case 'toggle_goal_day': {
+        const month = args.month || habitMonth;
+        const g = findGoal(args.goal, month);
+        if (!g) return `couldn't find a goal matching "${args.goal}".`;
+        if (!g.days) g.days = [];
+        const idx = g.days.indexOf(args.day);
+        if (args.done && idx < 0) g.days.push(args.day);
+        if (!args.done && idx >= 0) g.days.splice(idx,1);
+        if (month === habitMonth) renderGoals();
+        saveHabit();
+        return `marked day ${args.day} of "${g.name}" as ${args.done ? 'done' : 'not done'}.`;
+      }
+      default:
+        return `unknown tool "${name}".`;
+    }
+  } catch(e) {
+    console.error('AI tool execution error', name, args, e);
+    return `error running ${name}: ${e.message}`;
+  }
+}
+
 function buildContext() {
   // build a rich context string from all of rigel's data
   let ctx = `You are Rigel AI, a personal assistant embedded inside the user's private life-management app called Rigel. You have full access to their data below. Be concise, warm, and insightful. Use the data to give real answers.\n\n`;
@@ -1771,24 +2014,48 @@ async function sendAiMessage() {
   const typing = appendTyping();
 
   const context = buildContext();
-  const prompt = `${context}\n\n=== USER QUESTION ===\n${text}`;
+  const systemPrompt = `${context}\n\nYou can also DO things, not just answer questions — you have tools to add/rename/delete nodes, connect nodes, add a journal entry to a node, add or remove habit goals, check/uncheck a specific day on a goal, and add memorable moments. When the user asks you to do something (e.g. "add a node named fall trip 2026", "check day 5 of my gym goal", "delete the ideas node"), call the right tool(s) instead of just describing what you'd do. Match node/goal names to the closest existing one if the wording isn't exact. Note that rename_node and delete_node are NOT executed immediately — calling them only shows the user a confirm/cancel prompt in the UI, and the actual change only happens if they click confirm. After the tools run, reply with a short, plain-language confirmation of what changed, and for rename/delete specifically make clear it's pending their confirmation rather than already done.`;
+
+  let messages = [
+    { role: 'system', content: systemPrompt },
+    { role: 'user', content: text }
+  ];
 
   try {
-    const res = await fetch(GROQ_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
-      body: JSON.stringify({
-        model: 'openai/gpt-oss-120b',
-        messages: [{ role: 'user', content: prompt }],
-        max_tokens: 1024,
-        temperature: 0.7
-      })
-    });
-    const data = await res.json();
-    console.log('groq response:', data);
-    const reply = data?.choices?.[0]?.message?.content || `no response. raw: ${JSON.stringify(data).slice(0,200)}`;
+    let finalReply = null;
+    for (let round = 0; round < 5 && finalReply === null; round++) {
+      const res = await fetch(GROQ_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${GROQ_KEY}` },
+        body: JSON.stringify({
+          model: 'openai/gpt-oss-120b',
+          messages,
+          tools: AI_TOOLS,
+          tool_choice: 'auto',
+          max_tokens: 1024,
+          temperature: 0.4
+        })
+      });
+      const data = await res.json();
+      console.log('groq response:', data);
+      const msg = data?.choices?.[0]?.message;
+      if (!msg) { finalReply = `no response. raw: ${JSON.stringify(data).slice(0,200)}`; break; }
+
+      if (msg.tool_calls && msg.tool_calls.length) {
+        messages.push({ role: 'assistant', content: msg.content || null, tool_calls: msg.tool_calls });
+        for (const call of msg.tool_calls) {
+          let args = {};
+          try { args = JSON.parse(call.function.arguments || '{}'); } catch(e) {}
+          const result = executeAiTool(call.function.name, args);
+          messages.push({ role: 'tool', tool_call_id: call.id, name: call.function.name, content: result });
+        }
+        // loop again so the model can see the tool results and respond
+      } else {
+        finalReply = msg.content || 'done.';
+      }
+    }
     typing.remove();
-    appendMsg('assistant', reply);
+    appendMsg('assistant', finalReply || 'done.');
   } catch(e) {
     typing.remove();
     appendMsg('assistant', 'error connecting to groq. check your API key or internet.');
