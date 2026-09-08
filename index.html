@@ -562,6 +562,33 @@ canvas { touch-action: none; }
 .profile-add-row input[type=text], .profile-add-row input:not([type]) { flex: 1; min-width: 90px; }
 .profile-add-row input[type=number] { width: 70px; }
 
+/* SLEEP QUALITY HEATMAP */
+#profile-sleep-picker { display: flex; gap: 6px; }
+#profile-sleep-picker select {
+  font-family: var(--font); font-size: 10px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 4px; color: var(--text);
+  padding: 4px 6px; outline: none;
+}
+#profile-sleep-picker select:focus { border-color: var(--accent); }
+#profile-sleep-grid { display: flex; flex-wrap: wrap; gap: 5px; }
+.sleep-box {
+  width: 26px; height: 26px; border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 9px; font-family: var(--font); color: var(--text-dim);
+  background: var(--bg); border: 1px solid var(--border);
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
+}
+.sleep-box.has-data { border-color: transparent; color: rgba(0,0,0,0.65); font-weight: 700; }
+.sleep-box.low { background: #e2a53f; }
+.sleep-box.mid { background: #1c7a4d; color: rgba(255,255,255,0.85); }
+.sleep-box.high { background: #35d488; }
+#profile-sleep-legend { display: flex; gap: 16px; margin-top: 10px; font-size: 10px; color: var(--text-dim); align-items: center; flex-wrap: wrap; }
+#profile-sleep-legend span { display: flex; align-items: center; gap: 5px; }
+.sleep-swatch { display: inline-block; width: 10px; height: 10px; border-radius: 3px; }
+.sleep-swatch.low { background: #e2a53f; }
+.sleep-swatch.mid { background: #1c7a4d; }
+.sleep-swatch.high { background: #35d488; }
+
 @media (max-width: 760px) {
   #profile-view { padding: 16px 8px; }
   #profile-card { padding: 20px 16px 8px; max-width: 100%; }
@@ -574,6 +601,7 @@ canvas { touch-action: none; }
   #profile-spider-canvas { width: 100%; height: auto; }
   .profile-add-row input, .profile-add-row button { font-size: 11px; }
   #profile-rings-list { justify-content: center; }
+  .sleep-box { width: 22px; height: 22px; font-size: 8px; }
 }
 </style>
 </head>
@@ -827,6 +855,25 @@ canvas { touch-action: none; }
           <input id="profile-ring-value" type="number" placeholder="value"/>
           <input id="profile-ring-max" type="number" placeholder="max"/>
           <button class="habit-add-btn" id="profile-ring-add-btn">+ add</button>
+        </div>
+      </div>
+      <!-- SLEEP QUALITY HEATMAP — auto-derived from the habit journal's
+           "sleep quality" tracker graph, read-only, no manual input needed -->
+      <div class="habit-section" id="profile-sleep-section">
+        <div class="habit-section-header">
+          <span class="habit-section-title">SLEEP QUALITY</span>
+          <div id="profile-sleep-picker">
+            <select id="profile-sleep-month-select"></select>
+            <select id="profile-sleep-year-select"></select>
+          </div>
+        </div>
+        <div class="habit-section-body" id="profile-sleep-body">
+          <div id="profile-sleep-grid"></div>
+          <div id="profile-sleep-legend">
+            <span><i class="sleep-swatch low"></i>1–2.5</span>
+            <span><i class="sleep-swatch mid"></i>2.6–4.5</span>
+            <span><i class="sleep-swatch high"></i>4.6–5</span>
+          </div>
         </div>
       </div>
     </div>
@@ -2477,6 +2524,67 @@ function renderRings() {
   }));
 }
 
+// ── SLEEP QUALITY HEATMAP — purely derived/read-only. Reads directly
+// from the same habitData object the habit journal's tracker graphs
+// already write to, so whatever you log there shows up here the next
+// time this view renders — no separate storage, no extra save calls. ──
+let profileSleepMonth = habitMonth;
+
+function findSleepGraph(monthKey) {
+  const data = habitData[monthKey];
+  if (!data || !data.graphs) return null;
+  return data.graphs.find(g => g.name.toLowerCase().includes('sleep')) || null;
+}
+
+function sleepBucketClass(val) {
+  if (val >= 1 && val <= 2.5) return 'low';
+  if (val > 2.5 && val <= 4.5) return 'mid';
+  if (val > 4.5 && val <= 5) return 'high';
+  return '';
+}
+
+function initSleepPicker() {
+  const mSel = document.getElementById('profile-sleep-month-select');
+  const ySel = document.getElementById('profile-sleep-year-select');
+  const months = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  mSel.innerHTML = months.map((m,i) => { const val = String(i+1).padStart(2,'0'); return `<option value="${val}">${m}</option>`; }).join('');
+  const curYear = new Date().getFullYear();
+  ySel.innerHTML = '';
+  for (let y = curYear - 3; y <= curYear + 2; y++) {
+    const opt = document.createElement('option'); opt.value = y; opt.textContent = y; ySel.appendChild(opt);
+  }
+  const [ky, km] = profileSleepMonth.split('-');
+  mSel.value = km; ySel.value = ky;
+  mSel.addEventListener('change', onSleepMonthChange);
+  ySel.addEventListener('change', onSleepMonthChange);
+}
+function onSleepMonthChange() {
+  const km = document.getElementById('profile-sleep-month-select').value;
+  const ky = document.getElementById('profile-sleep-year-select').value;
+  profileSleepMonth = `${ky}-${km}`;
+  renderSleepHeatmap();
+}
+
+function renderSleepHeatmap() {
+  const grid = document.getElementById('profile-sleep-grid');
+  const daysInMonth = getDaysInMonth(profileSleepMonth);
+  const graph = findSleepGraph(profileSleepMonth);
+  const pointMap = {};
+  if (graph && graph.points) graph.points.forEach(p => { pointMap[p.day] = p.val; });
+
+  let html = '';
+  for (let d = 1; d <= daysInMonth; d++) {
+    const val = pointMap[d];
+    if (val === undefined) {
+      html += `<div class="sleep-box" title="Day ${d}: no data logged">${d}</div>`;
+    } else {
+      html += `<div class="sleep-box has-data ${sleepBucketClass(val)}" title="Day ${d}: ${val}">${d}</div>`;
+    }
+  }
+  grid.innerHTML = html;
+}
+initSleepPicker();
+
 function renderProfileView() {
   document.getElementById('profile-name-input').value = profileData.name || '';
   const iconImg = document.getElementById('profile-icon-img'), iconPh = document.getElementById('profile-icon-placeholder');
@@ -2492,6 +2600,7 @@ function renderProfileView() {
 
   renderSpiderList(); drawSpiderChart();
   renderBars(); renderRings();
+  renderSleepHeatmap();
 }
 
 loadProfile();
