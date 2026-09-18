@@ -603,6 +603,103 @@ canvas { touch-action: none; }
   #profile-rings-list { justify-content: center; }
   .sleep-box { width: 22px; height: 22px; font-size: 8px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   COMPANION SYSTEM — Lewis (virtual pet dog) + Plant. Fully additive,
+   own launcher button + overlay tab, same pattern as the profile
+   system above. Nothing above this block is touched.
+   ══════════════════════════════════════════════════════════════════ */
+#companion-btn {
+  position: fixed; bottom: 118px; right: 16px;
+  width: 46px; height: 46px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border2);
+  cursor: pointer; z-index: 61; padding: 0; overflow: visible;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  transition: transform 0.15s, border-color 0.15s;
+}
+#companion-btn:hover { transform: scale(1.08); border-color: var(--accent); }
+#companion-btn-img { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; display: block; }
+#companion-badge {
+  position: absolute; top: -4px; right: -4px;
+  background: #e24b4a; color: #fff; font-size: 9px; font-weight: 700;
+  padding: 1px 5px; border-radius: 8px; letter-spacing: 0.02em;
+  opacity: 0; transition: opacity 1.2s ease; font-family: var(--font);
+}
+#companion-badge.show { opacity: 1; }
+#companion-plant-dot {
+  position: absolute; bottom: -2px; left: -2px;
+  width: 11px; height: 11px; border-radius: 50%;
+  border: 2px solid var(--bg); background: #3aa67a;
+}
+#companion-plant-dot.wilting { background: #e2a53f; }
+#companion-plant-dot.dead { background: #e24b4a; }
+
+/* dynamic-island style transient popup, peeking up beside the launcher */
+#companion-island {
+  position: fixed; bottom: 174px; right: 16px;
+  background: rgba(18,18,18,0.92); border: 1px solid var(--border2);
+  border-radius: 22px; padding: 6px 16px 6px 6px;
+  display: flex; align-items: center; gap: 8px;
+  z-index: 62; opacity: 0; pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 0.35s, transform 0.35s;
+  backdrop-filter: blur(6px); max-width: min(280px, 70vw);
+}
+#companion-island.show { opacity: 1; transform: translateY(0); }
+#companion-island-img { width: 26px; height: 26px; border-radius: 50%; object-fit: cover; flex-shrink: 0; }
+#companion-island-text { font-size: 11px; color: var(--text); letter-spacing: 0.02em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* fullscreen companion tab — mirrors #profile-view's overlay pattern */
+#companion-view {
+  position: fixed; inset: 0; z-index: 900;
+  background: rgba(0,0,0,0.75);
+  display: none; align-items: flex-start; justify-content: center;
+  overflow-y: auto; padding: 24px;
+}
+#companion-view.open { display: flex; }
+#companion-card {
+  position: relative; width: 100%; max-width: 860px;
+  background: var(--surface); border: 1px solid var(--accent);
+  border-radius: 12px; padding: 32px 40px 28px;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.7);
+}
+#companion-close {
+  position: absolute; top: 14px; right: 16px;
+  background: none; border: none; color: var(--text-dim);
+  font-size: 16px; cursor: pointer;
+}
+#companion-close:hover { color: var(--accent); }
+#companion-status {
+  position: absolute; top: 16px; right: 44px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; color: var(--text-dim); letter-spacing: 0.03em;
+}
+#companion-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); transition: background 0.3s; }
+#companion-status-dot.saving { background: #ef9f27; }
+#companion-status-dot.saved { background: var(--accent2); }
+#companion-status-dot.error { background: #e24b4a; }
+
+#companion-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding-top: 16px; }
+#lewis-body, #plant-body { align-items: center; text-align: center; }
+#lewis-img, #plant-img { width: 160px; height: 160px; object-fit: contain; margin: 4px auto; }
+#lewis-status-text, #plant-status-text { font-size: 12px; color: var(--text); line-height: 1.5; min-height: 34px; }
+#lewis-pet-count { font-size: 10px; color: var(--text-dim); }
+#plant-punishment-box { background: var(--bg); border: 1px solid #e24b4a; border-radius: 6px; padding: 12px; margin-top: 4px; width: 100%; }
+#plant-punishment-text { font-size: 11px; color: #f0a5a4; line-height: 1.5; margin-bottom: 10px; }
+#lewis-section .habit-section-header { border-bottom-color: var(--accent); }
+#plant-section .habit-section-header { border-bottom-color: var(--accent2); }
+
+@media (max-width: 760px) {
+  #companion-btn { bottom: 82px; right: 12px; width: 38px; height: 38px; }
+  #companion-island { bottom: 128px; right: 12px; padding: 5px 12px 5px 5px; max-width: 62vw; }
+  #companion-island-img { width: 22px; height: 22px; }
+  #companion-island-text { font-size: 10px; }
+  #companion-view { padding: 16px 8px; }
+  #companion-card { padding: 20px 16px; max-width: 100%; }
+  #companion-grid { grid-template-columns: 1fr; gap: 16px; }
+  #lewis-img, #plant-img { width: 120px; height: 120px; }
+}
 </style>
 </head>
 <body>
@@ -873,6 +970,62 @@ canvas { touch-action: none; }
             <span><i class="sleep-swatch low"></i>1–2.5</span>
             <span><i class="sleep-swatch mid"></i>2.6–4.5</span>
             <span><i class="sleep-swatch high"></i>4.6–5</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     COMPANION SYSTEM — Lewis (virtual pet dog) + Plant. Fully additive,
+     mirrors the profile-view overlay pattern above. Image files are
+     referenced by name only — drop matching PNGs into an /images
+     folder next to index.html:
+       images/lewis-normal.png   (idle)
+       images/lewis-playful.png  (active/happy while you're using the app)
+       images/lewis-sad.png      (lonely — you've been away 12h+)
+       images/lewis-alert.png    (excited the moment you come back)
+       images/plant-healthy.png
+       images/plant-wilting.png
+       images/plant-dead.png
+     ══════════════════════════════════════════════════════════════════ -->
+<button id="companion-btn" title="Lewis & the plant">
+  <img id="companion-btn-img" src="images/lewis-normal.png" alt=""/>
+  <span id="companion-badge">!!!</span>
+  <span id="companion-plant-dot"></span>
+</button>
+
+<div id="companion-island">
+  <img id="companion-island-img" src="images/lewis-normal.png" alt=""/>
+  <span id="companion-island-text"></span>
+</div>
+
+<div id="companion-view">
+  <div id="companion-card">
+    <button id="companion-close">✕</button>
+    <div id="companion-status"><span id="companion-status-dot"></span><span id="companion-status-text">loading...</span></div>
+
+    <div id="companion-grid">
+      <div class="habit-section" id="lewis-section">
+        <div class="habit-section-header"><span class="habit-section-title">LEWIS</span></div>
+        <div class="habit-section-body" id="lewis-body">
+          <img id="lewis-img" src="images/lewis-normal.png" alt="Lewis"/>
+          <div id="lewis-status-text">...</div>
+          <button id="lewis-pet-btn" class="habit-add-btn">pet Lewis</button>
+          <div id="lewis-pet-count"></div>
+        </div>
+      </div>
+
+      <div class="habit-section" id="plant-section">
+        <div class="habit-section-header"><span class="habit-section-title">PLANT</span></div>
+        <div class="habit-section-body" id="plant-body">
+          <img id="plant-img" src="images/plant-healthy.png" alt="Plant"/>
+          <div id="plant-status-text">...</div>
+          <button id="plant-water-btn" class="habit-add-btn">water plant</button>
+          <div id="plant-punishment-box" style="display:none;">
+            <div id="plant-punishment-text"></div>
+            <button id="plant-revive-btn" class="habit-add-btn">done — revive plant</button>
           </div>
         </div>
       </div>
@@ -2603,8 +2756,256 @@ function renderProfileView() {
   renderSleepHeatmap();
 }
 
+// ══════════════════════════════════════════════════════════════════
+// COMPANION SYSTEM — Lewis (virtual pet dog) + Plant. Fully additive.
+// Persists to its own dedicated table (companion_data, row id='companion'),
+// completely separate from graph_data/profile_data, so it can't collide
+// with anything above it.
+// ══════════════════════════════════════════════════════════════════
+const COMPANION_TABLE = 'companion_data';
+
+// Fill these in yourself — each death picks one at random. Leave any
+// blank and a generic fallback message is shown instead.
+const PLANT_PUNISHMENTS = [
+  "", // ← e.g. "do 10 pushups"
+  "", // ← e.g. "donate $10 somewhere"
+  "",
+  "",
+  ""
+];
+
+let companionData = { lastSeen: null, plantLastWatered: null, plantDead: false, punishmentText: '', totalPets: 0 };
+let lewisMood = 'normal'; // normal | playful | sad | alert
+let lewisActivityTimer = null;
+let islandHideTimer = null;
+let companionSaveTimer = null;
+let lastActivityPopup = 0;
+
+function setCompanionStatus(type, msg) {
+  const dot = document.getElementById('companion-status-dot'), txt = document.getElementById('companion-status-text');
+  if (dot) dot.className = type;
+  if (txt) txt.textContent = msg;
+}
+
+async function loadCompanion() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${COMPANION_TABLE}?id=eq.companion&select=data`, { headers });
+    if (res.ok) {
+      const rows = await res.json();
+      if (rows && rows[0] && rows[0].data) {
+        companionData = Object.assign({ lastSeen:null, plantLastWatered:null, plantDead:false, punishmentText:'', totalPets:0 }, rows[0].data);
+      }
+      setCompanionStatus('saved', 'loaded');
+    } else {
+      const body = await res.text().catch(()=>'');
+      console.error('loadCompanion failed:', res.status, body);
+      setCompanionStatus('error', `load failed (${res.status})`);
+    }
+  } catch(e) {
+    console.error('loadCompanion network error:', e);
+    setCompanionStatus('error', 'load failed — offline?');
+  }
+  initCompanionAfterLoad();
+}
+
+async function saveCompanion() {
+  setCompanionStatus('saving', 'saving...');
+  const payload = { id: 'companion', data: companionData, updated_at: new Date().toISOString() };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${COMPANION_TABLE}?on_conflict=id`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(()=>'');
+      console.error('saveCompanion failed:', res.status, body);
+      setCompanionStatus('error', `save failed (${res.status})`);
+    } else {
+      setCompanionStatus('saved', 'saved ✓');
+    }
+  } catch(e) {
+    console.error('saveCompanion network error:', e);
+    setCompanionStatus('error', 'save failed — offline?');
+  }
+}
+function scheduleCompanionSave() {
+  clearTimeout(companionSaveTimer);
+  companionSaveTimer = setTimeout(saveCompanion, 500);
+}
+
+// ── Lewis: mood, activity detection, dynamic-island popup ──
+function lewisImageFor(mood) {
+  switch(mood) {
+    case 'playful': return 'images/lewis-playful.png';
+    case 'sad': return 'images/lewis-sad.png';
+    case 'alert': return 'images/lewis-alert.png';
+    default: return 'images/lewis-normal.png';
+  }
+}
+function showCompanionBadge() {
+  const badge = document.getElementById('companion-badge');
+  badge.classList.add('show');
+  setTimeout(() => badge.classList.remove('show'), 4000);
+}
+function showCompanionIsland(text, mood) {
+  const island = document.getElementById('companion-island');
+  document.getElementById('companion-island-img').src = lewisImageFor(mood || lewisMood);
+  document.getElementById('companion-island-text').textContent = text;
+  island.classList.add('show');
+  clearTimeout(islandHideTimer);
+  islandHideTimer = setTimeout(() => island.classList.remove('show'), 3000);
+}
+function setLewisMood(mood) {
+  lewisMood = mood;
+  renderCompanionButton();
+  if (document.getElementById('companion-view').classList.contains('open')) renderCompanionTab();
+}
+function markActivity() {
+  clearTimeout(lewisActivityTimer);
+  if (lewisMood !== 'sad' && lewisMood !== 'playful') {
+    setLewisMood('playful');
+    const now = Date.now();
+    if (now - lastActivityPopup > 60000) {
+      showCompanionIsland("Lewis is excited you're here!", 'playful');
+      lastActivityPopup = now;
+    }
+  }
+  lewisActivityTimer = setTimeout(() => { if (lewisMood === 'playful') setLewisMood('normal'); }, 30000);
+}
+document.addEventListener('pointerdown', markActivity, { passive: true });
+document.addEventListener('keydown', markActivity);
+
+function lewisStatusMessage() {
+  switch(lewisMood) {
+    case 'sad': return "Lewis has been alone for a while and misses you. 🐾";
+    case 'alert': return "Lewis is SO happy you're back!! 🎉";
+    case 'playful': return "Lewis is wagging his tail — he loves that you're here.";
+    default: return "Lewis is resting nearby, keeping an eye on things.";
+  }
+}
+
+// ── Plant lifecycle ──
+function plantHoursSinceWater() {
+  if (!companionData.plantLastWatered) return Infinity;
+  return (Date.now() - new Date(companionData.plantLastWatered).getTime()) / 3600000;
+}
+function plantStage() {
+  if (companionData.plantDead) return 'dead';
+  const h = plantHoursSinceWater();
+  if (h > 24) return 'dead';
+  if (h > 12) return 'wilting';
+  return 'healthy';
+}
+function plantImageFor(stage) {
+  if (stage === 'dead') return 'images/plant-dead.png';
+  if (stage === 'wilting') return 'images/plant-wilting.png';
+  return 'images/plant-healthy.png';
+}
+function checkPlantStatus() {
+  if (!companionData.plantLastWatered) {
+    companionData.plantLastWatered = new Date().toISOString();
+    scheduleCompanionSave();
+  }
+  if (!companionData.plantDead && plantHoursSinceWater() > 24) {
+    companionData.plantDead = true;
+    const pick = PLANT_PUNISHMENTS[Math.floor(Math.random() * PLANT_PUNISHMENTS.length)];
+    companionData.punishmentText = pick && pick.trim() ? pick : 'do your punishment (edit PLANT_PUNISHMENTS in the code to customize these) to revive the plant.';
+    scheduleCompanionSave();
+  }
+  renderCompanionButton();
+  if (document.getElementById('companion-view').classList.contains('open')) renderCompanionTab();
+}
+
+// ── button / island / tab rendering ──
+function renderCompanionButton() {
+  document.getElementById('companion-btn-img').src = lewisImageFor(lewisMood);
+  const dot = document.getElementById('companion-plant-dot');
+  const stage = plantStage();
+  dot.className = stage === 'dead' ? 'dead' : (stage === 'wilting' ? 'wilting' : '');
+}
+
+function renderCompanionTab() {
+  document.getElementById('lewis-img').src = lewisImageFor(lewisMood);
+  document.getElementById('lewis-status-text').textContent = lewisStatusMessage();
+  document.getElementById('lewis-pet-count').textContent = companionData.totalPets ? `petted ${companionData.totalPets} time${companionData.totalPets===1?'':'s'}` : '';
+
+  const stage = plantStage();
+  document.getElementById('plant-img').src = plantImageFor(stage);
+  const waterBtn = document.getElementById('plant-water-btn');
+  const punishBox = document.getElementById('plant-punishment-box');
+  if (stage === 'dead') {
+    document.getElementById('plant-status-text').textContent = "The plant has died. 💀";
+    waterBtn.style.display = 'none';
+    punishBox.style.display = 'block';
+    document.getElementById('plant-punishment-text').textContent = companionData.punishmentText;
+  } else {
+    const h = plantHoursSinceWater();
+    document.getElementById('plant-status-text').textContent = stage === 'wilting'
+      ? "The plant is wilting — water it soon."
+      : `The plant is healthy. Last watered ${h < 1 ? 'less than an hour' : Math.floor(h) + ' hour' + (Math.floor(h)===1?'':'s')} ago.`;
+    waterBtn.style.display = 'inline-block';
+    punishBox.style.display = 'none';
+  }
+}
+
+function showCompanionView() { document.getElementById('companion-view').classList.add('open'); renderCompanionTab(); }
+function hideCompanionView() { document.getElementById('companion-view').classList.remove('open'); }
+document.getElementById('companion-btn').addEventListener('click', showCompanionView);
+document.getElementById('companion-close').addEventListener('click', hideCompanionView);
+document.getElementById('companion-view').addEventListener('mousedown', e => { if (e.target === document.getElementById('companion-view')) hideCompanionView(); });
+
+document.getElementById('lewis-pet-btn').addEventListener('click', () => {
+  companionData.totalPets = (companionData.totalPets || 0) + 1;
+  setLewisMood('playful');
+  showCompanionIsland('Lewis loves being petted! 🐕', 'playful');
+  renderCompanionTab();
+  scheduleCompanionSave();
+});
+document.getElementById('plant-water-btn').addEventListener('click', () => {
+  if (companionData.plantDead) return;
+  companionData.plantLastWatered = new Date().toISOString();
+  renderCompanionTab(); renderCompanionButton();
+  scheduleCompanionSave();
+});
+document.getElementById('plant-revive-btn').addEventListener('click', () => {
+  companionData.plantDead = false;
+  companionData.punishmentText = '';
+  companionData.plantLastWatered = new Date().toISOString();
+  renderCompanionTab(); renderCompanionButton();
+  scheduleCompanionSave();
+});
+
+function initCompanionAfterLoad() {
+  const now = Date.now();
+  const prevSeen = companionData.lastSeen ? new Date(companionData.lastSeen).getTime() : now;
+  const hoursAway = (now - prevSeen) / 3600000;
+
+  if (hoursAway > 12) {
+    setLewisMood('sad');
+    setTimeout(() => {
+      setLewisMood('alert');
+      showCompanionBadge();
+      showCompanionIsland("Lewis missed you!! 🎉", 'alert');
+      setTimeout(() => { if (lewisMood === 'alert') setLewisMood('normal'); }, 4000);
+    }, 1200);
+  } else {
+    setLewisMood('normal');
+  }
+
+  companionData.lastSeen = new Date(now).toISOString();
+  scheduleCompanionSave();
+  setInterval(() => { companionData.lastSeen = new Date().toISOString(); scheduleCompanionSave(); }, 5 * 60 * 1000);
+
+  checkPlantStatus();
+  setInterval(checkPlantStatus, 60 * 1000);
+
+  renderCompanionButton();
+}
+
 loadProfile();
 loadGraph();
+loadCompanion();
 </script>
 </body>
 </html>
