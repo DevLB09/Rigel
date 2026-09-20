@@ -700,6 +700,83 @@ canvas { touch-action: none; }
   #companion-grid { grid-template-columns: 1fr; gap: 16px; }
   #lewis-img, #plant-img { width: 120px; height: 120px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   ORION'S BELT — dynamic-island style utility widget (Timer, Stopwatch,
+   Wallet). Fully additive, own fixed-position element, doesn't touch
+   anything above this block.
+   ══════════════════════════════════════════════════════════════════ */
+#orion-island {
+  position: fixed; top: 60px; right: 24px; z-index: 500;
+  background: #000; border-radius: 18.5px;
+  width: 58px; height: 37px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; overflow: hidden;
+  box-shadow: 0 6px 20px rgba(0,0,0,0.5);
+  transition: width 0.45s cubic-bezier(0.175,0.885,0.32,1.275),
+              height 0.45s cubic-bezier(0.175,0.885,0.32,1.275),
+              border-radius 0.4s ease, padding 0.4s ease, background 0.3s;
+}
+#orion-island.hovered:not(.expanded) { width: 148px; }
+#orion-island.has-live:not(.expanded):not(.hovered) { width: auto; min-width: 92px; padding: 0 14px; }
+#orion-island.expanded {
+  width: 320px; height: auto; min-height: 226px;
+  border-radius: 26px; align-items: stretch; justify-content: flex-start;
+  padding: 16px;
+}
+
+#orion-compact { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 100%; }
+#orion-island.expanded #orion-compact { display: none; }
+
+.orion-icon { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; }
+.orion-icon.ticking { animation: orion-tick 1s steps(1) infinite; }
+@keyframes orion-tick { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(12deg); } }
+
+#orion-live-text { color: #fff; font-family: var(--font); font-size: 11px; letter-spacing: 0.02em; white-space: nowrap; opacity: 0; transition: opacity 0.3s; }
+#orion-island.has-live #orion-live-text { opacity: 1; }
+
+#orion-hover-icons { display: flex; gap: 10px; opacity: 0; transform: scale(0.7); transition: opacity 0.3s, transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275); pointer-events: none; }
+#orion-island.hovered #orion-hover-icons { opacity: 1; transform: scale(1); pointer-events: auto; }
+.orion-util-btn { background: none; border: none; padding: 4px; cursor: pointer; border-radius: 50%; transition: background 0.2s; }
+.orion-util-btn:hover { background: rgba(255,255,255,0.14); }
+.orion-util-btn img { width: 18px; height: 18px; display: block; }
+
+#orion-expanded { display: none; width: 100%; flex-direction: column; gap: 12px; opacity: 0; transition: opacity 0.25s 0.1s; }
+#orion-island.expanded #orion-expanded { display: flex; opacity: 1; }
+
+#orion-tabs { display: flex; gap: 6px; }
+.orion-tab {
+  flex: 1; background: rgba(255,255,255,0.08); border: none; border-radius: 8px;
+  color: rgba(255,255,255,0.55); font-family: var(--font); font-size: 10px; letter-spacing: 0.04em;
+  padding: 7px 0; cursor: pointer; transition: background 0.2s, color 0.2s;
+}
+.orion-tab.active { background: var(--accent); color: #fff; }
+
+.orion-panel { display: flex; flex-direction: column; gap: 10px; align-items: center; padding-top: 2px; }
+#orion-timer-display, #orion-stopwatch-display { font-size: 26px; color: #fff; font-family: var(--font); letter-spacing: 0.03em; }
+.orion-row { display: flex; gap: 8px; align-items: center; justify-content: center; width: 100%; flex-wrap: wrap; }
+.orion-row input {
+  font-family: var(--font); font-size: 11px; background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.16); border-radius: 6px; color: #fff;
+  padding: 6px 8px; outline: none; width: 60px; text-align: center;
+}
+.orion-row input:focus { border-color: var(--accent); }
+#orion-wallet-input { width: 100px; }
+#orion-wallet-amount { font-size: 24px; color: var(--accent2); font-family: var(--font); }
+#orion-wallet-status { display: flex; align-items: center; gap: 6px; font-size: 9px; color: rgba(255,255,255,0.4); }
+#orion-wallet-status-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.4); }
+#orion-wallet-status-dot.saving { background: #ef9f27; }
+#orion-wallet-status-dot.saved { background: var(--accent2); }
+#orion-wallet-status-dot.error { background: #e24b4a; }
+
+@media (max-width: 760px) {
+  #orion-island { top: 50px; right: 10px; width: 52px; height: 34px; }
+  #orion-island.hovered:not(.expanded) { width: 120px; }
+  #orion-island.has-live:not(.expanded):not(.hovered) { min-width: 80px; padding: 0 10px; }
+  #orion-island.expanded { width: 88vw; max-width: 320px; right: 6vw; min-height: 200px; }
+  .orion-icon { width: 16px; height: 16px; }
+  #orion-timer-display, #orion-stopwatch-display { font-size: 22px; }
+}
 </style>
 </head>
 <body>
@@ -1029,6 +1106,66 @@ canvas { touch-action: none; }
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     ORION'S BELT — dynamic-island style utility widget. Fully additive.
+     Image files are referenced by name only — drop matching PNGs into
+     the same /images folder used by the companion system:
+       images/orion-idle.png         (resting glyph, nothing active)
+       images/orion-ticking.png      (small ticking clock, shown while
+                                       a timer/stopwatch is running)
+       images/orion-timer-icon.png   (hover icon — opens Timer/Stopwatch)
+       images/orion-wallet-icon.png  (hover icon — opens Wallet)
+     ══════════════════════════════════════════════════════════════════ -->
+<div id="orion-island" title="Orion's Belt">
+  <div id="orion-compact">
+    <img id="orion-left-icon" class="orion-icon" src="images/orion-idle.png" alt=""/>
+    <span id="orion-live-text"></span>
+    <div id="orion-hover-icons">
+      <button class="orion-util-btn" data-util="timer" title="Timer / Stopwatch"><img src="images/orion-timer-icon.png" alt="Timer"/></button>
+      <button class="orion-util-btn" data-util="wallet" title="Wallet"><img src="images/orion-wallet-icon.png" alt="Wallet"/></button>
+    </div>
+  </div>
+
+  <div id="orion-expanded">
+    <div id="orion-tabs">
+      <button class="orion-tab active" data-tab="timer">timer</button>
+      <button class="orion-tab" data-tab="stopwatch">stopwatch</button>
+      <button class="orion-tab" data-tab="wallet">wallet</button>
+    </div>
+
+    <div id="orion-panel-timer" class="orion-panel">
+      <div id="orion-timer-display">00:00</div>
+      <div class="orion-row">
+        <input type="number" id="orion-timer-min" min="0" placeholder="min"/>
+        <input type="number" id="orion-timer-sec" min="0" max="59" placeholder="sec"/>
+      </div>
+      <div class="orion-row">
+        <button class="habit-add-btn" id="orion-timer-start">start</button>
+        <button class="habit-add-btn" id="orion-timer-pause">pause</button>
+        <button class="habit-add-btn" id="orion-timer-reset">reset</button>
+      </div>
+    </div>
+
+    <div id="orion-panel-stopwatch" class="orion-panel" style="display:none;">
+      <div id="orion-stopwatch-display">00:00.0</div>
+      <div class="orion-row">
+        <button class="habit-add-btn" id="orion-sw-start">start</button>
+        <button class="habit-add-btn" id="orion-sw-pause">pause</button>
+        <button class="habit-add-btn" id="orion-sw-reset">reset</button>
+      </div>
+    </div>
+
+    <div id="orion-panel-wallet" class="orion-panel" style="display:none;">
+      <div id="orion-wallet-amount">$0.00</div>
+      <div class="orion-row">
+        <input type="number" step="0.01" id="orion-wallet-input" placeholder="new amount..."/>
+        <button class="habit-add-btn" id="orion-wallet-save">set</button>
+      </div>
+      <div id="orion-wallet-status"><span id="orion-wallet-status-dot"></span><span id="orion-wallet-status-text"></span></div>
     </div>
   </div>
 </div>
@@ -3003,9 +3140,191 @@ function initCompanionAfterLoad() {
   renderCompanionButton();
 }
 
+// ══════════════════════════════════════════════════════════════════
+// ORION'S BELT — dynamic-island style utility widget. Fully additive.
+// Timer/stopwatch state is in-memory only (resets on reload, like any
+// normal timer app). Wallet persists to its own dedicated table
+// (wallet_data, row id='wallet'), separate from every other table.
+// ══════════════════════════════════════════════════════════════════
+const WALLET_TABLE = 'wallet_data';
+const orionIsland = document.getElementById('orion-island');
+
+let orionExpanded = false;
+let orionActiveTab = 'timer';
+let timerInterval = null, timerRemaining = 0, timerRunning = false;
+let swInterval = null, swElapsed = 0, swRunning = false, swStartTs = 0;
+let walletData = { amount: 0 };
+let walletSaveTimer = null;
+
+// ── hover / expand / collapse ──
+orionIsland.addEventListener('mouseenter', () => { if (!orionExpanded) orionIsland.classList.add('hovered'); });
+orionIsland.addEventListener('mouseleave', () => { orionIsland.classList.remove('hovered'); });
+
+document.getElementById('orion-compact').addEventListener('click', (e) => {
+  const utilBtn = e.target.closest('.orion-util-btn');
+  if (utilBtn) { openOrion(utilBtn.dataset.util); return; }
+  openOrion(timerRunning ? 'timer' : (swRunning ? 'stopwatch' : orionActiveTab));
+});
+
+function openOrion(tab) {
+  orionExpanded = true;
+  orionIsland.classList.remove('hovered');
+  orionIsland.classList.add('expanded');
+  switchOrionTab(tab);
+}
+function closeOrion() {
+  orionExpanded = false;
+  orionIsland.classList.remove('expanded');
+}
+document.addEventListener('mousedown', (e) => {
+  if (orionExpanded && !orionIsland.contains(e.target)) closeOrion();
+});
+
+document.querySelectorAll('.orion-tab').forEach(btn => btn.addEventListener('click', () => switchOrionTab(btn.dataset.tab)));
+function switchOrionTab(tab) {
+  orionActiveTab = tab;
+  document.querySelectorAll('.orion-tab').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.orion-panel').forEach(p => p.style.display = 'none');
+  document.getElementById(`orion-panel-${tab}`).style.display = 'flex';
+}
+
+// ── compact-mode live display (ticking icon + running time) ──
+function updateOrionCompactLive() {
+  const iconEl = document.getElementById('orion-left-icon');
+  const textEl = document.getElementById('orion-live-text');
+  if (timerRunning) {
+    iconEl.src = 'images/orion-ticking.png'; iconEl.classList.add('ticking');
+    textEl.textContent = fmtTime(Math.max(0, timerRemaining));
+    orionIsland.classList.add('has-live');
+  } else if (swRunning) {
+    iconEl.src = 'images/orion-ticking.png'; iconEl.classList.add('ticking');
+    textEl.textContent = fmtSwTime(swElapsed);
+    orionIsland.classList.add('has-live');
+  } else {
+    iconEl.src = 'images/orion-idle.png'; iconEl.classList.remove('ticking');
+    textEl.textContent = '';
+    orionIsland.classList.remove('has-live');
+  }
+}
+
+// ── Timer ──
+function fmtTime(totalSec) {
+  const m = Math.floor(totalSec/60), s = Math.floor(totalSec%60);
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+document.getElementById('orion-timer-start').addEventListener('click', () => {
+  if (timerRunning) return;
+  if (timerRemaining <= 0) {
+    const min = parseInt(document.getElementById('orion-timer-min').value) || 0;
+    const sec = parseInt(document.getElementById('orion-timer-sec').value) || 0;
+    timerRemaining = min*60 + sec;
+    if (timerRemaining <= 0) return;
+  }
+  timerRunning = true;
+  timerInterval = setInterval(() => {
+    timerRemaining--;
+    document.getElementById('orion-timer-display').textContent = fmtTime(Math.max(0, timerRemaining));
+    updateOrionCompactLive();
+    if (timerRemaining <= 0) { clearInterval(timerInterval); timerRunning = false; updateOrionCompactLive(); }
+  }, 1000);
+  updateOrionCompactLive();
+});
+document.getElementById('orion-timer-pause').addEventListener('click', () => {
+  clearInterval(timerInterval); timerRunning = false; updateOrionCompactLive();
+});
+document.getElementById('orion-timer-reset').addEventListener('click', () => {
+  clearInterval(timerInterval); timerRunning = false; timerRemaining = 0;
+  document.getElementById('orion-timer-display').textContent = '00:00';
+  updateOrionCompactLive();
+});
+
+// ── Stopwatch ──
+function fmtSwTime(ms) {
+  const totalSec = ms/1000;
+  const m = Math.floor(totalSec/60), s = Math.floor(totalSec%60), t = Math.floor((totalSec%1)*10);
+  return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${t}`;
+}
+document.getElementById('orion-sw-start').addEventListener('click', () => {
+  if (swRunning) return;
+  swRunning = true; swStartTs = Date.now() - swElapsed;
+  swInterval = setInterval(() => {
+    swElapsed = Date.now() - swStartTs;
+    document.getElementById('orion-stopwatch-display').textContent = fmtSwTime(swElapsed);
+    updateOrionCompactLive();
+  }, 100);
+  updateOrionCompactLive();
+});
+document.getElementById('orion-sw-pause').addEventListener('click', () => {
+  clearInterval(swInterval); swRunning = false; updateOrionCompactLive();
+});
+document.getElementById('orion-sw-reset').addEventListener('click', () => {
+  clearInterval(swInterval); swRunning = false; swElapsed = 0;
+  document.getElementById('orion-stopwatch-display').textContent = '00:00.0';
+  updateOrionCompactLive();
+});
+
+// ── Wallet (persisted) ──
+function setWalletStatus(type, msg) {
+  const dot = document.getElementById('orion-wallet-status-dot'), txt = document.getElementById('orion-wallet-status-text');
+  if (dot) dot.className = type;
+  if (txt) txt.textContent = msg;
+}
+function renderWallet() {
+  document.getElementById('orion-wallet-amount').textContent = `$${Number(walletData.amount || 0).toFixed(2)}`;
+}
+async function loadWallet() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${WALLET_TABLE}?id=eq.wallet&select=data`, { headers });
+    if (res.ok) {
+      const rows = await res.json();
+      if (rows && rows[0] && rows[0].data) walletData = Object.assign({ amount: 0 }, rows[0].data);
+      renderWallet();
+      setWalletStatus('saved', 'loaded');
+    } else {
+      const body = await res.text().catch(()=>'');
+      console.error('loadWallet failed:', res.status, body);
+      setWalletStatus('error', `load failed (${res.status})`);
+    }
+  } catch(e) {
+    console.error('loadWallet network error:', e);
+    setWalletStatus('error', 'load failed — offline?');
+  }
+}
+async function saveWallet() {
+  setWalletStatus('saving', 'saving...');
+  const payload = { id: 'wallet', data: walletData, updated_at: new Date().toISOString() };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${WALLET_TABLE}?on_conflict=id`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(()=>'');
+      console.error('saveWallet failed:', res.status, body);
+      setWalletStatus('error', `save failed (${res.status})`);
+    } else {
+      setWalletStatus('saved', 'saved ✓');
+    }
+  } catch(e) {
+    console.error('saveWallet network error:', e);
+    setWalletStatus('error', 'save failed — offline?');
+  }
+}
+document.getElementById('orion-wallet-save').addEventListener('click', () => {
+  const val = parseFloat(document.getElementById('orion-wallet-input').value);
+  if (isNaN(val)) return;
+  walletData.amount = val;
+  document.getElementById('orion-wallet-input').value = '';
+  renderWallet();
+  clearTimeout(walletSaveTimer);
+  walletSaveTimer = setTimeout(saveWallet, 400);
+});
+
 loadProfile();
 loadGraph();
 loadCompanion();
+loadWallet();
 </script>
 </body>
 </html>
