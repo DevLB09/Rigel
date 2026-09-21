@@ -707,7 +707,7 @@ canvas { touch-action: none; }
    anything above this block.
    ══════════════════════════════════════════════════════════════════ */
 #orion-island {
-  position: fixed; top: 90px; right: 24px; z-index: 500;
+  position: fixed; top: 112px; right: 24px; z-index: 500;
   background: #000; border-radius: 18.5px;
   width: 58px; height: 37px; padding: 0;
   display: flex; align-items: center; justify-content: center;
@@ -717,29 +717,45 @@ canvas { touch-action: none; }
               height 0.45s cubic-bezier(0.175,0.885,0.32,1.275),
               border-radius 0.4s ease, padding 0.4s ease, background 0.3s;
 }
-#orion-island.hovered:not(.expanded) { width: 148px; }
+#orion-island.hovered:not(.expanded):not(.has-live) { width: 148px; }
 #orion-island.has-live:not(.expanded):not(.hovered) { width: auto; min-width: 92px; padding: 0 14px; }
+#orion-island.has-live.hovered:not(.expanded) { width: auto; min-width: 230px; padding: 0 16px; }
 #orion-island.expanded {
   width: 320px; height: auto; min-height: 226px;
   border-radius: 26px; align-items: stretch; justify-content: flex-start;
   padding: 16px;
 }
+#orion-island.alerting:not(.expanded) {
+  width: auto; min-width: 200px; height: 46px; padding: 0 18px;
+  border-radius: 23px;
+  animation: orion-alert-pop 0.5s cubic-bezier(0.175,0.885,0.32,1.275);
+}
+@keyframes orion-alert-pop { 0% { transform: scale(0.9); } 50% { transform: scale(1.08); } 100% { transform: scale(1); } }
 
-#orion-compact { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 100%; }
+#orion-compact { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; height: 100%; }
 #orion-island.expanded #orion-compact { display: none; }
+#orion-island.alerting #orion-compact { display: none; }
 
 .orion-icon { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; }
 .orion-icon.ticking { animation: orion-tick 1s steps(1) infinite; }
 @keyframes orion-tick { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(12deg); } }
 
-#orion-live-text { color: #fff; font-family: var(--font); font-size: 11px; letter-spacing: 0.02em; white-space: nowrap; opacity: 0; transition: opacity 0.3s; }
+#orion-live-text { color: #fff; font-family: var(--font); font-size: 11px; letter-spacing: 0.02em; white-space: nowrap; opacity: 0; transition: opacity 0.3s; flex-shrink: 0; }
 #orion-island.has-live #orion-live-text { opacity: 1; }
 
-#orion-hover-icons { display: flex; gap: 10px; opacity: 0; transform: scale(0.7); transition: opacity 0.3s, transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275); pointer-events: none; }
+#orion-hover-icons { display: flex; gap: 12px; opacity: 0; transform: scale(0.7); transition: opacity 0.3s, transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275); pointer-events: none; flex-shrink: 0; }
 #orion-island.hovered #orion-hover-icons { opacity: 1; transform: scale(1); pointer-events: auto; }
-.orion-util-btn { background: none; border: none; padding: 4px; cursor: pointer; border-radius: 50%; transition: background 0.2s; }
+.orion-util-btn { background: none; border: none; padding: 4px; cursor: pointer; border-radius: 50%; transition: background 0.2s; flex-shrink: 0; }
 .orion-util-btn:hover { background: rgba(255,255,255,0.14); }
 .orion-util-btn img { width: 18px; height: 18px; display: block; }
+
+#orion-alert-content {
+  display: none; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; height: 100%; white-space: nowrap;
+}
+#orion-island.alerting #orion-alert-content { display: flex; }
+#orion-alert-content img { width: 20px; height: 20px; flex-shrink: 0; animation: orion-tick 0.4s steps(1) infinite; }
+#orion-alert-text { color: #fff; font-family: var(--font); font-size: 12px; font-weight: 500; letter-spacing: 0.02em; }
 
 #orion-expanded { display: none; width: 100%; flex-direction: column; gap: 12px; opacity: 0; transition: opacity 0.25s 0.1s; }
 #orion-island.expanded #orion-expanded { display: flex; opacity: 1; }
@@ -771,10 +787,14 @@ canvas { touch-action: none; }
 
 @media (max-width: 760px) {
   #orion-island { top: 74px; right: 10px; width: 52px; height: 34px; }
-  #orion-island.hovered:not(.expanded) { width: 120px; }
+  #orion-island.hovered:not(.expanded):not(.has-live) { width: 120px; }
   #orion-island.has-live:not(.expanded):not(.hovered) { min-width: 80px; padding: 0 10px; }
+  #orion-island.has-live.hovered:not(.expanded) { min-width: 190px; padding: 0 12px; }
+  #orion-island.alerting:not(.expanded) { min-width: 160px; height: 40px; padding: 0 14px; }
   #orion-island.expanded { width: 88vw; max-width: 320px; right: 6vw; min-height: 200px; }
   .orion-icon { width: 16px; height: 16px; }
+  #orion-alert-content img { width: 17px; height: 17px; }
+  #orion-alert-text { font-size: 11px; }
   #orion-timer-display, #orion-stopwatch-display { font-size: 22px; }
 }
 </style>
@@ -1129,6 +1149,11 @@ canvas { touch-action: none; }
       <button class="orion-util-btn" data-util="timer" title="Timer / Stopwatch"><img src="images/orion-timer-icon.png" alt="Timer"/></button>
       <button class="orion-util-btn" data-util="wallet" title="Wallet"><img src="images/orion-wallet-icon.png" alt="Wallet"/></button>
     </div>
+  </div>
+
+  <div id="orion-alert-content">
+    <img src="images/orion-ticking.png" alt=""/>
+    <span id="orion-alert-text">time's up!</span>
   </div>
 
   <div id="orion-expanded">
@@ -3166,10 +3191,26 @@ document.getElementById('orion-compact').addEventListener('click', (e) => {
   if (utilBtn) { openOrion(utilBtn.dataset.util); return; }
   openOrion(timerRunning ? 'timer' : (swRunning ? 'stopwatch' : orionActiveTab));
 });
+document.getElementById('orion-alert-content').addEventListener('click', () => {
+  orionIsland.classList.remove('alerting');
+  openOrion('timer');
+});
+
+let orionAlertTimer = null;
+function triggerOrionAlert(text) {
+  document.getElementById('orion-alert-text').textContent = text;
+  orionIsland.classList.remove('hovered');
+  orionIsland.classList.add('alerting');
+  clearTimeout(orionAlertTimer);
+  orionAlertTimer = setTimeout(() => {
+    orionIsland.classList.remove('alerting');
+    updateOrionCompactLive();
+  }, 5000);
+}
 
 function openOrion(tab) {
   orionExpanded = true;
-  orionIsland.classList.remove('hovered');
+  orionIsland.classList.remove('hovered', 'alerting');
   orionIsland.classList.add('expanded');
   switchOrionTab(tab);
 }
@@ -3228,6 +3269,7 @@ document.getElementById('orion-timer-start').addEventListener('click', () => {
     updateOrionCompactLive();
     if (timerRemaining <= 0) {
       clearInterval(timerInterval); timerRunning = false; updateOrionCompactLive();
+      triggerOrionAlert("time's up!");
       const alarm = document.getElementById('orion-alarm-audio');
       alarm.currentTime = 0;
       alarm.play().catch(() => {}); // browser may block autoplay until the user has interacted with the page — harmless if so
