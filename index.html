@@ -717,7 +717,7 @@ canvas { touch-action: none; }
               height 0.45s cubic-bezier(0.175,0.885,0.32,1.275),
               border-radius 0.4s ease, padding 0.4s ease, background 0.3s;
 }
-#orion-island.hovered:not(.expanded):not(.has-live) { width: 148px; }
+#orion-island.hovered:not(.expanded):not(.has-live) { width: 158px; }
 #orion-island.has-live:not(.expanded):not(.hovered) { width: auto; min-width: 92px; padding: 0 14px; }
 #orion-island.has-live.hovered:not(.expanded) { width: auto; min-width: 230px; padding: 0 16px; }
 #orion-island.expanded {
@@ -743,7 +743,16 @@ canvas { touch-action: none; }
 #orion-live-text { color: #fff; font-family: var(--font); font-size: 11px; letter-spacing: 0.02em; white-space: nowrap; opacity: 0; transition: opacity 0.3s; flex-shrink: 0; }
 #orion-island.has-live #orion-live-text { opacity: 1; }
 
-#orion-hover-icons { display: flex; gap: 12px; opacity: 0; transform: scale(0.7); transition: opacity 0.3s, transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275); pointer-events: none; flex-shrink: 0; }
+#orion-hover-icons {
+  display: flex; gap: 12px; opacity: 0; transform: scale(0.7);
+  transition: opacity 0.3s, transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
+  pointer-events: none; flex-shrink: 0;
+  max-width: 60px; overflow-x: auto; overflow-y: hidden;
+  scroll-behavior: smooth; cursor: grab;
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+#orion-hover-icons::-webkit-scrollbar { display: none; }
+#orion-hover-icons.dragging { cursor: grabbing; scroll-behavior: auto; }
 #orion-island.hovered #orion-hover-icons { opacity: 1; transform: scale(1); pointer-events: auto; }
 .orion-util-btn { background: none; border: none; padding: 4px; cursor: pointer; border-radius: 50%; transition: background 0.2s; flex-shrink: 0; }
 .orion-util-btn:hover { background: rgba(255,255,255,0.14); }
@@ -784,6 +793,20 @@ canvas { touch-action: none; }
 #orion-wallet-status-dot.saving { background: #ef9f27; }
 #orion-wallet-status-dot.saved { background: var(--accent2); }
 #orion-wallet-status-dot.error { background: #e24b4a; }
+
+#orion-journal-prompt { font-size: 11px; color: rgba(255,255,255,0.6); line-height: 1.5; text-align: center; padding: 0 2px; }
+#orion-journal-text {
+  width: 100%; min-height: 90px; font-family: var(--font); font-size: 11px;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16);
+  border-radius: 8px; color: #fff; padding: 8px 10px; outline: none;
+  resize: vertical; line-height: 1.5;
+}
+#orion-journal-text:focus { border-color: var(--accent); }
+#orion-journal-status { display: flex; align-items: center; gap: 6px; font-size: 9px; color: rgba(255,255,255,0.4); }
+#orion-journal-status-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.4); }
+#orion-journal-status-dot.saving { background: #ef9f27; }
+#orion-journal-status-dot.saved { background: var(--accent2); }
+#orion-journal-status-dot.error { background: #e24b4a; }
 
 @media (max-width: 760px) {
   #orion-island { top: 74px; right: 10px; width: 52px; height: 34px; }
@@ -1148,6 +1171,7 @@ canvas { touch-action: none; }
     <div id="orion-hover-icons">
       <button class="orion-util-btn" data-util="timer" title="Timer / Stopwatch"><img src="images/orion-timer-icon.png" alt="Timer"/></button>
       <button class="orion-util-btn" data-util="wallet" title="Wallet"><img src="images/orion-wallet-icon.png" alt="Wallet"/></button>
+      <button class="orion-util-btn" data-util="journal" title="Journal Prompt"><img src="images/orion-journal-icon.png" alt="Journal"/></button>
     </div>
   </div>
 
@@ -1161,6 +1185,7 @@ canvas { touch-action: none; }
       <button class="orion-tab active" data-tab="timer">timer</button>
       <button class="orion-tab" data-tab="stopwatch">stopwatch</button>
       <button class="orion-tab" data-tab="wallet">wallet</button>
+      <button class="orion-tab" data-tab="journal">journal</button>
     </div>
 
     <div id="orion-panel-timer" class="orion-panel">
@@ -1192,6 +1217,16 @@ canvas { touch-action: none; }
         <button class="habit-add-btn" id="orion-wallet-save">set</button>
       </div>
       <div id="orion-wallet-status"><span id="orion-wallet-status-dot"></span><span id="orion-wallet-status-text"></span></div>
+    </div>
+
+    <div id="orion-panel-journal" class="orion-panel" style="display:none;">
+      <div id="orion-journal-prompt"></div>
+      <textarea id="orion-journal-text" placeholder="write your thoughts..."></textarea>
+      <div class="orion-row">
+        <button class="habit-add-btn" id="orion-journal-save">save</button>
+        <button class="habit-add-btn" id="orion-journal-new-prompt">new prompt</button>
+      </div>
+      <div id="orion-journal-status"><span id="orion-journal-status-dot"></span><span id="orion-journal-status-text"></span></div>
     </div>
   </div>
 </div>
@@ -3186,7 +3221,32 @@ let walletSaveTimer = null;
 orionIsland.addEventListener('mouseenter', () => { if (!orionExpanded) orionIsland.classList.add('hovered'); });
 orionIsland.addEventListener('mouseleave', () => { orionIsland.classList.remove('hovered'); });
 
+// ── drag-to-scroll for the utility icon strip — lets more icons live
+// off to the right without cramming the island; wheel/trackpad and
+// mouse-drag both scroll it, and a real drag doesn't also fire a click. ──
+let orionDragMoved = false;
+(function() {
+  const scroller = document.getElementById('orion-hover-icons');
+  let isDown = false, startX, scrollStart;
+  scroller.addEventListener('mousedown', e => {
+    isDown = true; orionDragMoved = false;
+    scroller.classList.add('dragging');
+    startX = e.pageX; scrollStart = scroller.scrollLeft;
+  });
+  window.addEventListener('mouseup', () => { isDown = false; scroller.classList.remove('dragging'); });
+  window.addEventListener('mousemove', e => {
+    if (!isDown) return;
+    const dx = e.pageX - startX;
+    if (Math.abs(dx) > 4) orionDragMoved = true;
+    scroller.scrollLeft = scrollStart - dx;
+  });
+  scroller.addEventListener('wheel', e => {
+    if (Math.abs(e.deltaX) < Math.abs(e.deltaY)) { scroller.scrollLeft += e.deltaY; e.preventDefault(); }
+  }, { passive: false });
+})();
+
 document.getElementById('orion-compact').addEventListener('click', (e) => {
+  if (orionDragMoved) { orionDragMoved = false; return; } // swallow click that was actually a drag
   const utilBtn = e.target.closest('.orion-util-btn');
   if (utilBtn) { openOrion(utilBtn.dataset.util); return; }
   openOrion(timerRunning ? 'timer' : (swRunning ? 'stopwatch' : orionActiveTab));
@@ -3369,10 +3429,106 @@ document.getElementById('orion-wallet-save').addEventListener('click', () => {
   walletSaveTimer = setTimeout(saveWallet, 400);
 });
 
+// ── Journal prompt (4th Orion utility) — persisted to its own table,
+// separate from wallet_data/companion_data/etc, same pattern as Wallet. ──
+const JOURNAL_TABLE = 'journal_prompt_data';
+const JOURNAL_PROMPTS = [
+  "What's one thing you're grateful for today?",
+  "What's weighing on your mind right now?",
+  "Describe a moment today that made you smile.",
+  "What do you want to remember about today?",
+  "What's one small win you had today?",
+  "If today had a title, what would it be?",
+  "What's something you're looking forward to?",
+  "What did you learn about yourself today?"
+];
+let journalData = { entries: {} };
+let journalSaveTimer = null;
+
+function todayKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function pickPrompt() { return JOURNAL_PROMPTS[Math.floor(Math.random()*JOURNAL_PROMPTS.length)]; }
+
+function setJournalStatus(type, msg) {
+  const dot = document.getElementById('orion-journal-status-dot'), txt = document.getElementById('orion-journal-status-text');
+  if (dot) dot.className = type;
+  if (txt) txt.textContent = msg;
+}
+
+async function loadJournalPrompt() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${JOURNAL_TABLE}?id=eq.journal&select=data`, { headers });
+    if (res.ok) {
+      const rows = await res.json();
+      if (rows && rows[0] && rows[0].data) journalData = Object.assign({ entries: {} }, rows[0].data);
+      setJournalStatus('saved', 'loaded');
+    } else {
+      console.error('loadJournalPrompt failed:', res.status, await res.text().catch(()=>''));
+      setJournalStatus('error', `load failed (${res.status})`);
+    }
+  } catch(e) {
+    console.error('loadJournalPrompt network error:', e);
+    setJournalStatus('error', 'load failed — offline?');
+  }
+  renderJournalPanel();
+}
+
+async function saveJournalPrompt() {
+  setJournalStatus('saving', 'saving...');
+  const payload = { id: 'journal', data: journalData, updated_at: new Date().toISOString() };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${JOURNAL_TABLE}?on_conflict=id`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      console.error('saveJournalPrompt failed:', res.status, await res.text().catch(()=>''));
+      setJournalStatus('error', `save failed (${res.status})`);
+    } else {
+      setJournalStatus('saved', 'saved ✓');
+    }
+  } catch(e) {
+    console.error('saveJournalPrompt network error:', e);
+    setJournalStatus('error', 'save failed — offline?');
+  }
+}
+
+function renderJournalPanel() {
+  const key = todayKey();
+  if (!journalData.entries[key]) journalData.entries[key] = { prompt: pickPrompt(), text: '' };
+  const entry = journalData.entries[key];
+  document.getElementById('orion-journal-prompt').textContent = entry.prompt;
+  document.getElementById('orion-journal-text').value = entry.text || '';
+}
+
+document.getElementById('orion-journal-text').addEventListener('input', e => {
+  const key = todayKey();
+  if (!journalData.entries[key]) journalData.entries[key] = { prompt: pickPrompt(), text: '' };
+  journalData.entries[key].text = e.target.value;
+  clearTimeout(journalSaveTimer);
+  journalSaveTimer = setTimeout(saveJournalPrompt, 600);
+});
+document.getElementById('orion-journal-save').addEventListener('click', () => {
+  clearTimeout(journalSaveTimer);
+  saveJournalPrompt();
+});
+document.getElementById('orion-journal-new-prompt').addEventListener('click', () => {
+  const key = todayKey();
+  journalData.entries[key] = journalData.entries[key] || { text: '' };
+  journalData.entries[key].prompt = pickPrompt();
+  document.getElementById('orion-journal-prompt').textContent = journalData.entries[key].prompt;
+  clearTimeout(journalSaveTimer);
+  journalSaveTimer = setTimeout(saveJournalPrompt, 400);
+});
+
 loadProfile();
 loadGraph();
 loadCompanion();
 loadWallet();
+loadJournalPrompt();
 </script>
 </body>
 </html>
