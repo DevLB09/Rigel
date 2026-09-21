@@ -11,7 +11,7 @@
 #pass-overlay {
   position: fixed; inset: 0; background: var(--bg);
   display: flex; align-items: center; justify-content: center;
-  z-index: 200; flex-direction: column; gap: 20px;
+  z-index: 999; flex-direction: column; gap: 20px;
 }
 #pass-overlay input {
   background: var(--surface); border: 1px solid var(--border);
@@ -707,7 +707,7 @@ canvas { touch-action: none; }
    anything above this block.
    ══════════════════════════════════════════════════════════════════ */
 #orion-island {
-  position: fixed; top: 60px; right: 24px; z-index: 500;
+  position: fixed; top: 112px; right: 24px; z-index: 500;
   background: #000; border-radius: 18.5px;
   width: 58px; height: 37px; padding: 0;
   display: flex; align-items: center; justify-content: center;
@@ -770,7 +770,7 @@ canvas { touch-action: none; }
 #orion-wallet-status-dot.error { background: #e24b4a; }
 
 @media (max-width: 760px) {
-  #orion-island { top: 50px; right: 10px; width: 52px; height: 34px; }
+  #orion-island { top: 74px; right: 10px; width: 52px; height: 34px; }
   #orion-island.hovered:not(.expanded) { width: 120px; }
   #orion-island.has-live:not(.expanded):not(.hovered) { min-width: 80px; padding: 0 10px; }
   #orion-island.expanded { width: 88vw; max-width: 320px; right: 6vw; min-height: 200px; }
@@ -1121,6 +1121,7 @@ canvas { touch-action: none; }
        images/orion-wallet-icon.png  (hover icon — opens Wallet)
      ══════════════════════════════════════════════════════════════════ -->
 <div id="orion-island" title="Orion's Belt">
+  <audio id="orion-alarm-audio" src="audio/orion-timer-alarm.mp3" preload="auto" style="display:none;"></audio>
   <div id="orion-compact">
     <img id="orion-left-icon" class="orion-icon" src="images/orion-idle.png" alt=""/>
     <span id="orion-live-text"></span>
@@ -3225,7 +3226,12 @@ document.getElementById('orion-timer-start').addEventListener('click', () => {
     timerRemaining--;
     document.getElementById('orion-timer-display').textContent = fmtTime(Math.max(0, timerRemaining));
     updateOrionCompactLive();
-    if (timerRemaining <= 0) { clearInterval(timerInterval); timerRunning = false; updateOrionCompactLive(); }
+    if (timerRemaining <= 0) {
+      clearInterval(timerInterval); timerRunning = false; updateOrionCompactLive();
+      const alarm = document.getElementById('orion-alarm-audio');
+      alarm.currentTime = 0;
+      alarm.play().catch(() => {}); // browser may block autoplay until the user has interacted with the page — harmless if so
+    }
   }, 1000);
   updateOrionCompactLive();
 });
