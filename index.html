@@ -708,8 +708,8 @@ canvas { touch-action: none; }
    ══════════════════════════════════════════════════════════════════ */
 #orion-island {
   position: fixed; top: 112px; right: 24px; z-index: 500;
-  background: #000; border-radius: 18.5px;
-  width: 58px; height: 37px; padding: 0;
+  background: #000; border-radius: 20px;
+  width: 64px; height: 42px; padding: 0;
   display: flex; align-items: center; justify-content: center;
   cursor: pointer; overflow: hidden;
   box-shadow: 0 6px 20px rgba(0,0,0,0.5);
@@ -717,9 +717,9 @@ canvas { touch-action: none; }
               height 0.45s cubic-bezier(0.175,0.885,0.32,1.275),
               border-radius 0.4s ease, padding 0.4s ease, background 0.3s;
 }
-#orion-island.hovered:not(.expanded):not(.has-live) { width: 158px; }
-#orion-island.has-live:not(.expanded):not(.hovered) { width: auto; min-width: 92px; padding: 0 14px; }
-#orion-island.has-live.hovered:not(.expanded) { width: auto; min-width: 230px; padding: 0 16px; }
+#orion-island.hovered:not(.expanded):not(.has-live) { width: 180px; }
+#orion-island.has-live:not(.expanded):not(.hovered) { width: auto; min-width: 98px; padding: 0 14px; }
+#orion-island.has-live.hovered:not(.expanded) { width: auto; min-width: 250px; padding: 0 16px; }
 #orion-island.expanded {
   width: 320px; height: auto; min-height: 226px;
   border-radius: 26px; align-items: stretch; justify-content: flex-start;
@@ -736,7 +736,7 @@ canvas { touch-action: none; }
 #orion-island.expanded #orion-compact { display: none; }
 #orion-island.alerting #orion-compact { display: none; }
 
-.orion-icon { width: 18px; height: 18px; object-fit: contain; flex-shrink: 0; }
+.orion-icon { width: 24px; height: 24px; object-fit: contain; flex-shrink: 0; }
 .orion-icon.ticking { animation: orion-tick 1s steps(1) infinite; }
 @keyframes orion-tick { 0%,100% { transform: rotate(0deg); } 50% { transform: rotate(12deg); } }
 
@@ -747,23 +747,23 @@ canvas { touch-action: none; }
   display: flex; gap: 12px; opacity: 0; transform: scale(0.7);
   transition: opacity 0.3s, transform 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
   pointer-events: none; flex-shrink: 0;
-  max-width: 60px; overflow-x: auto; overflow-y: hidden;
+  max-width: 78px; overflow-x: auto; overflow-y: hidden;
   scroll-behavior: smooth; cursor: grab;
   scrollbar-width: none; -ms-overflow-style: none;
 }
 #orion-hover-icons::-webkit-scrollbar { display: none; }
 #orion-hover-icons.dragging { cursor: grabbing; scroll-behavior: auto; }
 #orion-island.hovered #orion-hover-icons { opacity: 1; transform: scale(1); pointer-events: auto; }
-.orion-util-btn { background: none; border: none; padding: 4px; cursor: pointer; border-radius: 50%; transition: background 0.2s; flex-shrink: 0; }
+.orion-util-btn { background: none; border: none; padding: 5px; cursor: pointer; border-radius: 50%; transition: background 0.2s; flex-shrink: 0; }
 .orion-util-btn:hover { background: rgba(255,255,255,0.14); }
-.orion-util-btn img { width: 18px; height: 18px; display: block; }
+.orion-util-btn img { width: 24px; height: 24px; display: block; }
 
 #orion-alert-content {
   display: none; align-items: center; justify-content: center; gap: 8px;
   width: 100%; height: 100%; white-space: nowrap;
 }
 #orion-island.alerting #orion-alert-content { display: flex; }
-#orion-alert-content img { width: 20px; height: 20px; flex-shrink: 0; animation: orion-tick 0.4s steps(1) infinite; }
+#orion-alert-content img { width: 26px; height: 26px; flex-shrink: 0; animation: orion-tick 0.4s steps(1) infinite; }
 #orion-alert-text { color: #fff; font-family: var(--font); font-size: 12px; font-weight: 500; letter-spacing: 0.02em; }
 
 #orion-expanded { display: none; width: 100%; flex-direction: column; gap: 12px; opacity: 0; transition: opacity 0.25s 0.1s; }
@@ -794,7 +794,7 @@ canvas { touch-action: none; }
 #orion-wallet-status-dot.saved { background: var(--accent2); }
 #orion-wallet-status-dot.error { background: #e24b4a; }
 
-#orion-journal-prompt { font-size: 11px; color: rgba(255,255,255,0.6); line-height: 1.5; text-align: center; padding: 0 2px; }
+#orion-journal-prompt { font-size: 11.5px; color: var(--accent2); line-height: 1.5; text-align: center; padding: 0 2px; letter-spacing: 0.02em; }
 #orion-journal-text {
   width: 100%; min-height: 90px; font-family: var(--font); font-size: 11px;
   background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16);
@@ -809,14 +809,16 @@ canvas { touch-action: none; }
 #orion-journal-status-dot.error { background: #e24b4a; }
 
 @media (max-width: 760px) {
-  #orion-island { top: 74px; right: 10px; width: 52px; height: 34px; }
-  #orion-island.hovered:not(.expanded):not(.has-live) { width: 120px; }
-  #orion-island.has-live:not(.expanded):not(.hovered) { min-width: 80px; padding: 0 10px; }
-  #orion-island.has-live.hovered:not(.expanded) { min-width: 190px; padding: 0 12px; }
+  #orion-island { top: 74px; right: 10px; width: 58px; height: 38px; }
+  #orion-island.hovered:not(.expanded):not(.has-live) { width: 140px; }
+  #orion-island.has-live:not(.expanded):not(.hovered) { min-width: 86px; padding: 0 10px; }
+  #orion-island.has-live.hovered:not(.expanded) { min-width: 210px; padding: 0 12px; }
   #orion-island.alerting:not(.expanded) { min-width: 160px; height: 40px; padding: 0 14px; }
   #orion-island.expanded { width: 88vw; max-width: 320px; right: 6vw; min-height: 200px; }
-  .orion-icon { width: 16px; height: 16px; }
-  #orion-alert-content img { width: 17px; height: 17px; }
+  .orion-icon { width: 21px; height: 21px; }
+  #orion-hover-icons { max-width: 66px; }
+  .orion-util-btn img { width: 21px; height: 21px; }
+  #orion-alert-content img { width: 22px; height: 22px; }
   #orion-alert-text { font-size: 11px; }
   #orion-timer-display, #orion-stopwatch-display { font-size: 22px; }
 }
@@ -1224,7 +1226,6 @@ canvas { touch-action: none; }
       <textarea id="orion-journal-text" placeholder="write your thoughts..."></textarea>
       <div class="orion-row">
         <button class="habit-add-btn" id="orion-journal-save">save</button>
-        <button class="habit-add-btn" id="orion-journal-new-prompt">new prompt</button>
       </div>
       <div id="orion-journal-status"><span id="orion-journal-status-dot"></span><span id="orion-journal-status-text"></span></div>
     </div>
@@ -3429,10 +3430,85 @@ document.getElementById('orion-wallet-save').addEventListener('click', () => {
   walletSaveTimer = setTimeout(saveWallet, 400);
 });
 
-// ── Journal prompt (4th Orion utility) — persisted to its own table,
-// separate from wallet_data/companion_data/etc, same pattern as Wallet. ──
+// ── Journal prompt (4th Orion utility) — calendar-based. Each month
+// gets its own fixed 30-day prompt list (day 1 = index 0). To add a
+// new month later, just add another "YYYY-MM": [30 strings] entry to
+// JOURNAL_PROMPT_SETS below. Months with no list defined yet fall back
+// to DEFAULT_JOURNAL_PROMPTS, cycled deterministically by day-of-month
+// (not random) so it stays stable across reloads. Persisted to its own
+// table, same pattern as Wallet.
 const JOURNAL_TABLE = 'journal_prompt_data';
-const JOURNAL_PROMPTS = [
+
+const JOURNAL_PROMPT_SETS = {
+  '2026-10': [
+    "describe your personality",
+    "things that makes you happy.",
+    "a memory.",
+    "places you want to visit.",
+    "Your parents",
+    "Single and Happy",
+    "favorite movie",
+    "the power of music",
+    "Write about happiness.",
+    "Your best friend",
+    "Talk about your siblings",
+    "favourite tv series",
+    "favourite book",
+    "Describe your style",
+    "If you could run away, where would you go?",
+    "someone I miss",
+    "ways to win my heart",
+    "Thirty facts about myself",
+    "My first love",
+    "your celebrity crush",
+    "write about LOVE.",
+    "write about today",
+    "A letter to someone, anyone",
+    "write about a lesson you've learned.",
+    "Something inspired of the 11th image on your phone",
+    "your school",
+    "Someone who inspires me",
+    "write about loving someone.",
+    "My goals for the future",
+    "write about what do you feel when you write."
+  ],
+  '2026-11': [
+    "describe your personality.",
+    "things that make you happy.",
+    "a memory you would never forget.",
+    "places you want to visit & why.",
+    "your parents.",
+    "you single & you in a relationship.",
+    "your all time favourite movies.",
+    "the power of music.",
+    "write about happiness.",
+    "your best friend.",
+    "your favourite series.",
+    "talk about your siblings.",
+    "your favourite book.",
+    "describe your style // aesthetic.",
+    "when you were at your lowest.",
+    "someone you miss.",
+    "ways to win your heart.",
+    "fifty facts about yourself.",
+    "your first love.",
+    "your true love // soulmate.",
+    "write about love.",
+    "a letter to someone; anyone.",
+    "a lesson you've learned.",
+    "people who inspire you.",
+    "your future goals.",
+    "a letter to you as a child.",
+    "a letter to your past self.",
+    "what do you feel when you write?",
+    "things you wanted for say but never said.",
+    "a letter to god."
+  ]
+  // add more months here, e.g.:
+  // '2026-12': [ "day 1 prompt", "day 2 prompt", ... 30 entries total ],
+};
+const JOURNAL_DAY31_PROMPT = "bonus day — write freely about whatever's on your mind.";
+const DEFAULT_JOURNAL_PROMPTS = [
   "What's one thing you're grateful for today?",
   "What's weighing on your mind right now?",
   "Describe a moment today that made you smile.",
@@ -3442,14 +3518,19 @@ const JOURNAL_PROMPTS = [
   "What's something you're looking forward to?",
   "What did you learn about yourself today?"
 ];
+
 let journalData = { entries: {} };
 let journalSaveTimer = null;
 
-function todayKey() {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+function journalDayKey(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+
+function promptForDate(d) {
+  const monthKey = getMonthKey(d); // reuses the habit journal's existing "YYYY-MM" helper
+  const day = d.getDate();
+  const set = JOURNAL_PROMPT_SETS[monthKey];
+  if (set) return day <= 30 ? set[day - 1] : JOURNAL_DAY31_PROMPT;
+  return DEFAULT_JOURNAL_PROMPTS[(day - 1) % DEFAULT_JOURNAL_PROMPTS.length];
 }
-function pickPrompt() { return JOURNAL_PROMPTS[Math.floor(Math.random()*JOURNAL_PROMPTS.length)]; }
 
 function setJournalStatus(type, msg) {
   const dot = document.getElementById('orion-journal-status-dot'), txt = document.getElementById('orion-journal-status-text');
@@ -3497,16 +3578,16 @@ async function saveJournalPrompt() {
 }
 
 function renderJournalPanel() {
-  const key = todayKey();
-  if (!journalData.entries[key]) journalData.entries[key] = { prompt: pickPrompt(), text: '' };
-  const entry = journalData.entries[key];
-  document.getElementById('orion-journal-prompt').textContent = entry.prompt;
-  document.getElementById('orion-journal-text').value = entry.text || '';
+  const today = new Date();
+  const key = journalDayKey(today);
+  if (!journalData.entries[key]) journalData.entries[key] = { text: '' };
+  document.getElementById('orion-journal-prompt').textContent = `DAY ${today.getDate()} — ${promptForDate(today)}`;
+  document.getElementById('orion-journal-text').value = journalData.entries[key].text || '';
 }
 
 document.getElementById('orion-journal-text').addEventListener('input', e => {
-  const key = todayKey();
-  if (!journalData.entries[key]) journalData.entries[key] = { prompt: pickPrompt(), text: '' };
+  const key = journalDayKey(new Date());
+  if (!journalData.entries[key]) journalData.entries[key] = { text: '' };
   journalData.entries[key].text = e.target.value;
   clearTimeout(journalSaveTimer);
   journalSaveTimer = setTimeout(saveJournalPrompt, 600);
@@ -3514,14 +3595,6 @@ document.getElementById('orion-journal-text').addEventListener('input', e => {
 document.getElementById('orion-journal-save').addEventListener('click', () => {
   clearTimeout(journalSaveTimer);
   saveJournalPrompt();
-});
-document.getElementById('orion-journal-new-prompt').addEventListener('click', () => {
-  const key = todayKey();
-  journalData.entries[key] = journalData.entries[key] || { text: '' };
-  journalData.entries[key].prompt = pickPrompt();
-  document.getElementById('orion-journal-prompt').textContent = journalData.entries[key].prompt;
-  clearTimeout(journalSaveTimer);
-  journalSaveTimer = setTimeout(saveJournalPrompt, 400);
 });
 
 loadProfile();
