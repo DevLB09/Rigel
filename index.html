@@ -822,6 +822,140 @@ canvas { touch-action: none; }
   #orion-alert-text { font-size: 11px; }
   #orion-timer-display, #orion-stopwatch-display { font-size: 22px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   THE WARDROBE — clothing library + daily outfit tracker. Fully
+   additive, own launcher button + overlay tab. Nothing above this
+   block is touched.
+   ══════════════════════════════════════════════════════════════════ */
+#wardrobe-btn {
+  position: fixed; bottom: 76px; left: 20px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; z-index: 60; box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  transition: transform 0.15s, border-color 0.15s;
+}
+#wardrobe-btn:hover { transform: scale(1.08); border-color: var(--accent); }
+
+#wardrobe-view {
+  position: fixed; inset: 0; z-index: 900;
+  background: rgba(0,0,0,0.75);
+  display: none; align-items: flex-start; justify-content: center;
+  overflow-y: auto; padding: 24px;
+}
+#wardrobe-view.open { display: flex; }
+#wardrobe-card {
+  position: relative; width: 100%; max-width: 1000px;
+  background: var(--surface); border: 1px solid var(--accent);
+  border-radius: 12px; padding: 32px 40px 28px;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.7);
+}
+#wardrobe-close {
+  position: absolute; top: 14px; right: 16px;
+  background: none; border: none; color: var(--text-dim);
+  font-size: 16px; cursor: pointer;
+}
+#wardrobe-close:hover { color: var(--accent); }
+#wardrobe-status {
+  position: absolute; top: 16px; right: 44px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; color: var(--text-dim); letter-spacing: 0.03em;
+}
+#wardrobe-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); transition: background 0.3s; }
+#wardrobe-status-dot.saving { background: #ef9f27; }
+#wardrobe-status-dot.saved { background: var(--accent2); }
+#wardrobe-status-dot.error { background: #e24b4a; }
+
+#wardrobe-title { font-size: 16px; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 4px; }
+#wardrobe-subtitle { font-size: 11px; color: var(--text-dim); margin-bottom: 18px; }
+
+/* dummy showcase — floats top-right, today's worn items overlaid on a
+   plain mannequin outline; text/sections wrap below it automatically */
+#wardrobe-dummy {
+  float: right; width: 168px; margin: 0 0 16px 20px;
+  background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+  padding: 10px; position: relative;
+}
+#wardrobe-dummy-svg { width: 100%; height: 214px; display: block; fill: none; stroke: var(--border2); stroke-width: 2; stroke-linejoin: round; }
+.wardrobe-dummy-layer { position: absolute; object-fit: contain; display: none; pointer-events: none; }
+.wardrobe-dummy-layer.show { display: block; }
+#wardrobe-dummy-shirt { top: 34px; left: 20px; width: 128px; height: 66px; }
+#wardrobe-dummy-pant { top: 100px; left: 24px; width: 120px; height: 64px; }
+#wardrobe-dummy-shoe-left { bottom: 16px; left: 14px; width: 62px; height: 26px; }
+#wardrobe-dummy-shoe-right { bottom: 16px; right: 14px; width: 62px; height: 26px; }
+#wardrobe-dummy-label { text-align: center; font-size: 9.5px; color: var(--text-dim); margin-top: 6px; letter-spacing: 0.05em; }
+
+.wardrobe-section { margin-bottom: 22px; }
+.wardrobe-section-header { font-size: 12px; color: var(--accent2); letter-spacing: 0.08em; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.wardrobe-grid { display: flex; flex-wrap: wrap; gap: 12px; }
+.wardrobe-item {
+  width: 88px; display: flex; flex-direction: column; align-items: center; gap: 6px;
+  cursor: pointer; padding: 8px; border-radius: 8px; border: 2px solid transparent;
+  background: var(--bg); transition: border-color 0.2s, transform 0.15s;
+}
+.wardrobe-item:hover { transform: translateY(-2px); }
+.wardrobe-item.worn { border-color: var(--accent2); }
+.wardrobe-item-thumb {
+  width: 56px; height: 56px; border-radius: 6px; background: #111;
+  display: flex; align-items: center; justify-content: center; overflow: hidden;
+}
+.wardrobe-item-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.wardrobe-item-thumb .placeholder { font-size: 22px; color: var(--text-dim); }
+.wardrobe-item-name { font-size: 9.5px; color: var(--text); text-align: center; line-height: 1.3; word-break: break-word; }
+.wardrobe-item.worn .wardrobe-item-name { color: var(--accent2); }
+.wardrobe-empty { font-size: 11px; color: var(--text-dim); padding: 10px 0; }
+
+#wardrobe-add-box {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+  padding: 14px; margin-top: 6px; display: flex; flex-wrap: wrap; gap: 8px; align-items: flex-end;
+}
+#wardrobe-add-box select, #wardrobe-add-box input[type=text], #wardrobe-add-box textarea {
+  font-family: var(--font); font-size: 11px; background: var(--surface);
+  border: 1px solid var(--border); border-radius: 4px; color: var(--text);
+  padding: 6px 8px; outline: none;
+}
+#wardrobe-add-box select:focus, #wardrobe-add-box input:focus, #wardrobe-add-box textarea:focus { border-color: var(--accent); }
+#wardrobe-add-box select { min-width: 92px; }
+#wardrobe-add-box input[type=text] { width: 120px; }
+#wardrobe-add-box textarea { width: 100%; min-height: 44px; resize: vertical; flex-basis: 100%; }
+.wardrobe-file-field { display: flex; flex-direction: column; gap: 3px; }
+.wardrobe-file-label { font-size: 9px; color: var(--text-dim); letter-spacing: 0.03em; }
+#wardrobe-add-box input[type=file] { font-size: 10px; color: var(--text-dim); max-width: 150px; }
+
+.wardrobe-history { display: flex; flex-direction: column; gap: 0; max-height: 220px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+.wardrobe-history-row { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.wardrobe-history-row:last-child { border-bottom: none; }
+.wardrobe-history-date { font-size: 9.5px; color: var(--text-dim); margin-bottom: 2px; }
+.wardrobe-history-label { font-size: 12px; color: var(--text); font-weight: 500; }
+
+#wardrobe-detail-modal {
+  position: fixed; inset: 0; z-index: 950; background: rgba(0,0,0,0.8);
+  display: none; align-items: center; justify-content: center; padding: 20px;
+}
+#wardrobe-detail-modal.open { display: flex; }
+#wardrobe-detail-card {
+  position: relative; width: 100%; max-width: 380px; background: var(--surface);
+  border: 1px solid var(--accent); border-radius: 12px; padding: 22px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.7);
+}
+#wardrobe-detail-close { position: absolute; top: 10px; right: 12px; background: none; border: none; color: var(--text-dim); font-size: 15px; cursor: pointer; }
+#wardrobe-detail-close:hover { color: var(--accent); }
+#wardrobe-detail-images { display: flex; gap: 8px; margin-bottom: 14px; }
+#wardrobe-detail-images img { flex: 1; height: 200px; object-fit: contain; background: #111; border-radius: 8px; }
+#wardrobe-detail-name { font-size: 15px; color: var(--accent); margin-bottom: 2px; }
+#wardrobe-detail-meta { font-size: 10px; color: var(--text-dim); margin-bottom: 10px; letter-spacing: 0.03em; }
+#wardrobe-detail-desc { font-size: 12px; color: var(--text); line-height: 1.6; white-space: pre-wrap; }
+
+@media (max-width: 760px) {
+  #wardrobe-btn { bottom: 62px; left: 14px; width: 38px; height: 38px; font-size: 16px; }
+  #wardrobe-view { padding: 16px 8px; }
+  #wardrobe-card { padding: 20px 16px; max-width: 100%; }
+  #wardrobe-dummy { float: none; width: 100%; max-width: 220px; margin: 0 auto 16px; }
+  .wardrobe-item { width: 74px; }
+  .wardrobe-item-thumb { width: 48px; height: 48px; }
+  #wardrobe-add-box input[type=text] { width: 100px; }
+}
 </style>
 </head>
 <body>
@@ -1229,6 +1363,93 @@ canvas { touch-action: none; }
       </div>
       <div id="orion-journal-status"><span id="orion-journal-status-dot"></span><span id="orion-journal-status-text"></span></div>
     </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     THE WARDROBE — clothing library + daily outfit tracker. Fully
+     additive, own launcher button above the AI assistant button.
+     ══════════════════════════════════════════════════════════════════ -->
+<button id="wardrobe-btn" title="The Wardrobe">👕</button>
+
+<div id="wardrobe-view">
+  <div id="wardrobe-card">
+    <button id="wardrobe-close">✕</button>
+    <div id="wardrobe-status"><span id="wardrobe-status-dot"></span><span id="wardrobe-status-text">loading...</span></div>
+
+    <div id="wardrobe-title">THE WARDROBE</div>
+    <div id="wardrobe-subtitle">click an item to wear/remove it · double-click for details</div>
+
+    <div id="wardrobe-dummy">
+      <svg id="wardrobe-dummy-svg" viewBox="0 0 100 170" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="14" r="10"/>
+        <line x1="50" y1="24" x2="50" y2="32"/>
+        <path d="M28 40 L50 32 L72 40 L68 72 L32 72 Z"/>
+        <path d="M28 40 L13 68"/>
+        <path d="M72 40 L87 68"/>
+        <path d="M34 72 L30 132 L46 132 L50 92 L54 132 L70 132 L66 72 Z"/>
+      </svg>
+      <img id="wardrobe-dummy-shirt" class="wardrobe-dummy-layer" alt=""/>
+      <img id="wardrobe-dummy-pant" class="wardrobe-dummy-layer" alt=""/>
+      <img id="wardrobe-dummy-shoe-left" class="wardrobe-dummy-layer" alt=""/>
+      <img id="wardrobe-dummy-shoe-right" class="wardrobe-dummy-layer" alt=""/>
+      <div id="wardrobe-dummy-label">today's outfit</div>
+    </div>
+
+    <div class="wardrobe-section">
+      <div class="wardrobe-section-header">SHIRTS</div>
+      <div class="wardrobe-grid" id="wardrobe-grid-shirt"></div>
+    </div>
+    <div class="wardrobe-section">
+      <div class="wardrobe-section-header">PANTS</div>
+      <div class="wardrobe-grid" id="wardrobe-grid-pant"></div>
+    </div>
+    <div class="wardrobe-section">
+      <div class="wardrobe-section-header">SHOES</div>
+      <div class="wardrobe-grid" id="wardrobe-grid-shoe"></div>
+    </div>
+
+    <div class="wardrobe-section" style="clear: both;">
+      <div class="wardrobe-section-header">ADD A NEW ITEM</div>
+      <div id="wardrobe-add-box">
+        <select id="wardrobe-add-section">
+          <option value="shirt">Shirt</option>
+          <option value="pant">Pant</option>
+          <option value="shoe">Shoe</option>
+        </select>
+        <select id="wardrobe-add-item"></select>
+        <input type="text" id="wardrobe-add-category" placeholder="Category (e.g. Polo)"/>
+        <input type="text" id="wardrobe-add-name" placeholder="Name (e.g. Ralph Lauren)"/>
+        <div class="wardrobe-file-field">
+          <span id="wardrobe-add-image-label" class="wardrobe-file-label">Image</span>
+          <input type="file" id="wardrobe-add-image" accept="image/*"/>
+        </div>
+        <div class="wardrobe-file-field" id="wardrobe-add-image-2-wrap" style="display:none;">
+          <span class="wardrobe-file-label">Right shoe image</span>
+          <input type="file" id="wardrobe-add-image-2" accept="image/*"/>
+        </div>
+        <textarea id="wardrobe-add-description" placeholder="Description (optional, you write this)"></textarea>
+        <button class="habit-add-btn" id="wardrobe-add-btn">+ add item</button>
+      </div>
+    </div>
+
+    <div class="wardrobe-section">
+      <div class="wardrobe-section-header">RECENTLY WORN</div>
+      <div class="wardrobe-history" id="wardrobe-history-list"></div>
+    </div>
+  </div>
+</div>
+
+<div id="wardrobe-detail-modal">
+  <div id="wardrobe-detail-card">
+    <button id="wardrobe-detail-close">✕</button>
+    <div id="wardrobe-detail-images">
+      <img id="wardrobe-detail-img" src="" alt=""/>
+      <img id="wardrobe-detail-img-2" src="" alt="" style="display:none;"/>
+    </div>
+    <div id="wardrobe-detail-name"></div>
+    <div id="wardrobe-detail-meta"></div>
+    <div id="wardrobe-detail-desc"></div>
   </div>
 </div>
 
@@ -3597,11 +3818,216 @@ document.getElementById('orion-journal-save').addEventListener('click', () => {
   saveJournalPrompt();
 });
 
+// ══════════════════════════════════════════════════════════════════
+// THE WARDROBE — clothing library + daily outfit tracker. Fully
+// additive. Persists to its own dedicated table (wardrobe_data, row
+// id='wardrobe'), separate from every other table.
+// ══════════════════════════════════════════════════════════════════
+const WARDROBE_TABLE = 'wardrobe_data';
+let wardrobeData = { items: [], history: [] };
+let wardrobeSaveTimer = null;
+let wardrobeNextId = 1;
+let wardrobeClickTimer = null;
+
+function setWardrobeStatus(type, msg) {
+  const dot = document.getElementById('wardrobe-status-dot'), txt = document.getElementById('wardrobe-status-text');
+  if (dot) dot.className = type;
+  if (txt) txt.textContent = msg;
+}
+
+async function loadWardrobe() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${WARDROBE_TABLE}?id=eq.wardrobe&select=data`, { headers });
+    if (res.ok) {
+      const rows = await res.json();
+      if (rows && rows[0] && rows[0].data) {
+        wardrobeData = Object.assign({ items: [], history: [] }, rows[0].data);
+        wardrobeNextId = wardrobeData.items.reduce((m, it) => Math.max(m, it.id || 0), 0) + 1;
+      }
+      setWardrobeStatus('saved', 'loaded');
+    } else {
+      const body = await res.text().catch(()=>'');
+      console.error('loadWardrobe failed:', res.status, body);
+      setWardrobeStatus('error', `load failed (${res.status})`);
+    }
+  } catch(e) {
+    console.error('loadWardrobe network error:', e);
+    setWardrobeStatus('error', 'load failed — offline?');
+  }
+  renderWardrobe();
+}
+
+async function saveWardrobe() {
+  setWardrobeStatus('saving', 'saving...');
+  const payload = { id: 'wardrobe', data: wardrobeData, updated_at: new Date().toISOString() };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${WARDROBE_TABLE}?on_conflict=id`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(()=>'');
+      console.error('saveWardrobe failed:', res.status, body);
+      setWardrobeStatus('error', `save failed (${res.status})`);
+    } else {
+      setWardrobeStatus('saved', 'saved ✓');
+    }
+  } catch(e) {
+    console.error('saveWardrobe network error:', e);
+    setWardrobeStatus('error', 'save failed — offline?');
+  }
+}
+function scheduleWardrobeSave() { clearTimeout(wardrobeSaveTimer); wardrobeSaveTimer = setTimeout(saveWardrobe, 500); }
+
+function showWardrobeView() { document.getElementById('wardrobe-view').classList.add('open'); renderWardrobe(); }
+function hideWardrobeView() { document.getElementById('wardrobe-view').classList.remove('open'); }
+document.getElementById('wardrobe-btn').addEventListener('click', showWardrobeView);
+document.getElementById('wardrobe-close').addEventListener('click', hideWardrobeView);
+document.getElementById('wardrobe-view').addEventListener('mousedown', e => { if (e.target === document.getElementById('wardrobe-view')) hideWardrobeView(); });
+
+function wardrobeSectionLabel(s) { return s === 'shirt' ? 'shirts' : s === 'pant' ? 'pants' : 'shoes'; }
+
+function renderWardrobe() {
+  ['shirt','pant','shoe'].forEach(section => {
+    const grid = document.getElementById(`wardrobe-grid-${section}`);
+    const items = wardrobeData.items.filter(it => it.section === section);
+    if (!items.length) { grid.innerHTML = `<div class="wardrobe-empty">no ${wardrobeSectionLabel(section)} added yet.</div>`; return; }
+    grid.innerHTML = items.map(it => `
+      <div class="wardrobe-item ${it.wornToday ? 'worn' : ''}" data-id="${it.id}">
+        <div class="wardrobe-item-thumb">${it.image ? `<img src="${it.image}" alt=""/>` : `<span class="placeholder">👕</span>`}</div>
+        <div class="wardrobe-item-name">${it.name}</div>
+      </div>`).join('');
+  });
+  // single click toggles wear (debounced so a double-click doesn't also fire it)
+  document.querySelectorAll('.wardrobe-item').forEach(el => {
+    el.addEventListener('click', () => {
+      clearTimeout(wardrobeClickTimer);
+      const id = +el.dataset.id;
+      wardrobeClickTimer = setTimeout(() => toggleWardrobeWorn(id), 220);
+    });
+    el.addEventListener('dblclick', () => {
+      clearTimeout(wardrobeClickTimer);
+      openWardrobeDetail(+el.dataset.id);
+    });
+  });
+  renderWardrobeHistory();
+  renderWardrobeDummy();
+}
+
+function toggleWardrobeWorn(id) {
+  const it = wardrobeData.items.find(x => x.id === id);
+  if (!it) return;
+  it.wornToday = !it.wornToday;
+  if (it.wornToday) {
+    wardrobeData.history.unshift({ ts: new Date().toISOString(), itemId: it.id, section: it.section, item: it.item, name: it.name });
+    if (wardrobeData.history.length > 200) wardrobeData.history = wardrobeData.history.slice(0, 200);
+  }
+  renderWardrobe();
+  scheduleWardrobeSave();
+}
+
+function renderWardrobeHistory() {
+  const el = document.getElementById('wardrobe-history-list');
+  if (!wardrobeData.history.length) { el.innerHTML = '<div class="wardrobe-empty" style="padding:14px;">nothing worn yet.</div>'; return; }
+  el.innerHTML = wardrobeData.history.slice(0, 25).map(h => {
+    const d = new Date(h.ts);
+    const dateStr = d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' }) + ', ' + d.toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    return `<div class="wardrobe-history-row"><div class="wardrobe-history-date">${dateStr}</div><div class="wardrobe-history-label">${h.name} <span style="color:var(--text-dim);font-weight:400;">(${h.item})</span></div></div>`;
+  }).join('');
+}
+
+// ── dummy showcase: shows today's worn shirt/pant/shoes overlaid on
+// the mannequin outline. If more than one item in a section is marked
+// worn at once, it just shows the first match. ──
+function setWardrobeDummyLayer(id, src) {
+  const el = document.getElementById(id);
+  if (src) { el.src = src; el.classList.add('show'); }
+  else { el.src = ''; el.classList.remove('show'); }
+}
+function renderWardrobeDummy() {
+  const shirt = wardrobeData.items.find(it => it.section === 'shirt' && it.wornToday);
+  const pant = wardrobeData.items.find(it => it.section === 'pant' && it.wornToday);
+  const shoe = wardrobeData.items.find(it => it.section === 'shoe' && it.wornToday);
+  setWardrobeDummyLayer('wardrobe-dummy-shirt', shirt && shirt.image);
+  setWardrobeDummyLayer('wardrobe-dummy-pant', pant && pant.image);
+  setWardrobeDummyLayer('wardrobe-dummy-shoe-left', shoe && shoe.image);
+  setWardrobeDummyLayer('wardrobe-dummy-shoe-right', shoe && shoe.imageRight);
+}
+
+// ── item-type dropdown: options + whether a 2nd (right shoe) image is needed ──
+const WARDROBE_ITEM_OPTIONS = {
+  shirt: ['T-shirt','Shirt','Hoodie','Jacket','Sweatshirt','Quarter-zip'],
+  pant: ['Jeans','Trousers','Sweatpants','Linen pants'],
+  shoe: ['Sneakers','Crocs','Slides']
+};
+function updateWardrobeItemOptions() {
+  const section = document.getElementById('wardrobe-add-section').value;
+  const sel = document.getElementById('wardrobe-add-item');
+  sel.innerHTML = WARDROBE_ITEM_OPTIONS[section].map(o => `<option value="${o}">${o}</option>`).join('');
+  const isShoe = section === 'shoe';
+  document.getElementById('wardrobe-add-image-label').textContent = isShoe ? 'Left shoe image' : 'Image';
+  document.getElementById('wardrobe-add-image-2-wrap').style.display = isShoe ? 'flex' : 'none';
+}
+document.getElementById('wardrobe-add-section').addEventListener('change', updateWardrobeItemOptions);
+updateWardrobeItemOptions();
+
+function wardrobeReadFile(file) {
+  return new Promise(resolve => {
+    if (!file) { resolve(''); return; }
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = () => resolve('');
+    reader.readAsDataURL(file);
+  });
+}
+
+document.getElementById('wardrobe-add-btn').addEventListener('click', async () => {
+  const section = document.getElementById('wardrobe-add-section').value;
+  const item = document.getElementById('wardrobe-add-item').value;
+  const category = document.getElementById('wardrobe-add-category').value.trim();
+  const name = document.getElementById('wardrobe-add-name').value.trim();
+  const description = document.getElementById('wardrobe-add-description').value.trim();
+  const file1Input = document.getElementById('wardrobe-add-image');
+  const file2Input = document.getElementById('wardrobe-add-image-2');
+  if (!name) return;
+
+  const image = await wardrobeReadFile(file1Input.files && file1Input.files[0]);
+  const imageRight = section === 'shoe' ? await wardrobeReadFile(file2Input.files && file2Input.files[0]) : '';
+
+  wardrobeData.items.push({ id: wardrobeNextId++, section, item, category, name, description, image, imageRight, wornToday: false });
+  document.getElementById('wardrobe-add-category').value = '';
+  document.getElementById('wardrobe-add-name').value = '';
+  document.getElementById('wardrobe-add-description').value = '';
+  file1Input.value = '';
+  file2Input.value = '';
+  renderWardrobe();
+  scheduleWardrobeSave();
+});
+
+function openWardrobeDetail(id) {
+  const it = wardrobeData.items.find(x => x.id === id);
+  if (!it) return;
+  const img1 = document.getElementById('wardrobe-detail-img');
+  const img2 = document.getElementById('wardrobe-detail-img-2');
+  img1.src = it.image || ''; img1.style.display = it.image ? 'block' : 'none';
+  if (it.imageRight) { img2.src = it.imageRight; img2.style.display = 'block'; } else { img2.src = ''; img2.style.display = 'none'; }
+  document.getElementById('wardrobe-detail-name').textContent = it.name;
+  document.getElementById('wardrobe-detail-meta').textContent = `${it.item}${it.category ? ' · ' + it.category : ''}`;
+  document.getElementById('wardrobe-detail-desc').textContent = it.description || '(no description yet)';
+  document.getElementById('wardrobe-detail-modal').classList.add('open');
+}
+document.getElementById('wardrobe-detail-close').addEventListener('click', () => document.getElementById('wardrobe-detail-modal').classList.remove('open'));
+document.getElementById('wardrobe-detail-modal').addEventListener('mousedown', e => {
+  if (e.target === document.getElementById('wardrobe-detail-modal')) document.getElementById('wardrobe-detail-modal').classList.remove('open');
+});
+
 loadProfile();
 loadGraph();
 loadCompanion();
 loadWallet();
 loadJournalPrompt();
+loadWardrobe();
 </script>
 </body>
 </html>
