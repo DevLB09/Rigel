@@ -956,6 +956,81 @@ canvas { touch-action: none; }
   .wardrobe-item-thumb { width: 48px; height: 48px; }
   #wardrobe-add-box input[type=text] { width: 100px; }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   WEEKLY RECAP — auto-generated, delivered "by Rigel AI" every 7 days.
+   Fully additive, own launcher button (stacked above wardrobe/AI) +
+   overlay tab. Nothing above this block is touched.
+   ══════════════════════════════════════════════════════════════════ */
+#recap-btn {
+  position: fixed; bottom: 132px; left: 20px;
+  width: 44px; height: 44px; border-radius: 50%;
+  background: var(--surface); border: 1px solid var(--border2); cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 17px; z-index: 60; box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  transition: transform 0.15s, border-color 0.15s;
+}
+#recap-btn:hover { transform: scale(1.08); border-color: var(--accent); }
+#recap-btn-dot {
+  position: absolute; top: -2px; right: -2px; width: 10px; height: 10px;
+  border-radius: 50%; background: var(--accent2); border: 2px solid var(--bg);
+  display: none;
+}
+#recap-btn-dot.show { display: block; }
+
+#recap-view {
+  position: fixed; inset: 0; z-index: 900;
+  background: rgba(0,0,0,0.75);
+  display: none; align-items: flex-start; justify-content: center;
+  overflow-y: auto; padding: 24px;
+}
+#recap-view.open { display: flex; }
+#recap-card {
+  position: relative; width: 100%; max-width: 560px;
+  background: var(--surface); border: 1px solid var(--accent);
+  border-radius: 12px; padding: 32px 36px 28px;
+  box-shadow: 0 24px 70px rgba(0,0,0,0.7);
+}
+#recap-close {
+  position: absolute; top: 14px; right: 16px;
+  background: none; border: none; color: var(--text-dim);
+  font-size: 16px; cursor: pointer;
+}
+#recap-close:hover { color: var(--accent); }
+#recap-status {
+  position: absolute; top: 16px; right: 44px;
+  display: flex; align-items: center; gap: 6px;
+  font-size: 10px; color: var(--text-dim); letter-spacing: 0.03em;
+}
+#recap-status-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--text-dim); transition: background 0.3s; }
+#recap-status-dot.saving { background: #ef9f27; }
+#recap-status-dot.saved { background: var(--accent2); }
+#recap-status-dot.error { background: #e24b4a; }
+
+#recap-title { font-size: 16px; letter-spacing: 0.08em; color: var(--accent); margin-bottom: 4px; }
+#recap-subtitle { font-size: 11px; color: var(--text-dim); margin-bottom: 18px; }
+
+#recap-current-period { font-size: 10px; color: var(--text-dim); letter-spacing: 0.03em; margin-bottom: 8px; }
+.recap-bubble {
+  background: var(--bg); border: 1px solid var(--border); border-radius: 8px 8px 8px 2px;
+  padding: 14px 16px; font-size: 12.5px; line-height: 1.7; color: var(--text);
+  white-space: pre-wrap; margin-bottom: 10px;
+}
+#recap-next-line { font-size: 10px; color: var(--text-dim); margin-bottom: 24px; }
+
+.recap-history-header { font-size: 12px; color: var(--accent2); letter-spacing: 0.08em; margin-bottom: 10px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.recap-history { display: flex; flex-direction: column; gap: 0; max-height: 240px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; }
+.recap-history-row { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+.recap-history-row:last-child { border-bottom: none; }
+.recap-history-date { font-size: 9.5px; color: var(--text-dim); margin-bottom: 3px; }
+.recap-history-text { font-size: 11px; color: var(--text); line-height: 1.6; white-space: pre-wrap; }
+.recap-empty { font-size: 11px; color: var(--text-dim); padding: 10px 0; }
+
+@media (max-width: 760px) {
+  #recap-btn { bottom: 108px; left: 14px; width: 38px; height: 38px; font-size: 15px; }
+  #recap-view { padding: 16px 8px; }
+  #recap-card { padding: 20px 16px; max-width: 100%; }
+}
 </style>
 </head>
 <body>
@@ -1450,6 +1525,32 @@ canvas { touch-action: none; }
     <div id="wardrobe-detail-name"></div>
     <div id="wardrobe-detail-meta"></div>
     <div id="wardrobe-detail-desc"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════════════
+     WEEKLY RECAP — auto-generated every 7 days, "delivered by Rigel AI".
+     Fully additive, own launcher button stacked above the wardrobe/AI
+     buttons on the bottom-left.
+     ══════════════════════════════════════════════════════════════════ -->
+<button id="recap-btn" title="Weekly Recap">
+  📰<span id="recap-btn-dot"></span>
+</button>
+
+<div id="recap-view">
+  <div id="recap-card">
+    <button id="recap-close">✕</button>
+    <div id="recap-status"><span id="recap-status-dot"></span><span id="recap-status-text">loading...</span></div>
+
+    <div id="recap-title">WEEKLY RECAP</div>
+    <div id="recap-subtitle">a little reflection, delivered by Rigel AI every 7 days</div>
+
+    <div id="recap-current-period"></div>
+    <div class="recap-bubble" id="recap-current-text">...</div>
+    <div id="recap-next-line"></div>
+
+    <div class="recap-history-header">PAST RECAPS</div>
+    <div class="recap-history" id="recap-history-list"></div>
   </div>
 </div>
 
@@ -2310,7 +2411,7 @@ function showGraphView() {
 document.getElementById('btn-habit').addEventListener('click', () => { habitMode ? showGraphView() : showHabitView(); });
 
 // ── RIGEL AI ASSISTANT ──
-const GROQ_KEY = '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';
+const GROQ_KEY = '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';
 const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions';
 
 const aiBtn = document.getElementById('ai-btn');
@@ -4022,12 +4123,185 @@ document.getElementById('wardrobe-detail-modal').addEventListener('mousedown', e
   if (e.target === document.getElementById('wardrobe-detail-modal')) document.getElementById('wardrobe-detail-modal').classList.remove('open');
 });
 
+// ══════════════════════════════════════════════════════════════════
+// WEEKLY RECAP — auto-generated every 7 days, "delivered by Rigel AI".
+// Fully additive, no Groq calls (plain templated text, as requested).
+// Persists to its own dedicated table (recap_data, row id='recap').
+// Tracks nodes/goal-checks/moments by comparing current totals to a
+// stored baseline snapshot — no changes needed anywhere else in the
+// app to make this work.
+// ══════════════════════════════════════════════════════════════════
+const RECAP_TABLE = 'recap_data';
+const RECAP_INTERVAL_MS = 7 * 24 * 60 * 60 * 1000;
+let recapData = { lastRecapAt: null, baseline: { nodes: 0, goalChecks: 0, moments: 0 }, history: [] };
+let recapSaveTimer = null;
+
+function setRecapStatus(type, msg) {
+  const dot = document.getElementById('recap-status-dot'), txt = document.getElementById('recap-status-text');
+  if (dot) dot.className = type;
+  if (txt) txt.textContent = msg;
+}
+
+async function loadRecap() {
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${RECAP_TABLE}?id=eq.recap&select=data`, { headers });
+    if (res.ok) {
+      const rows = await res.json();
+      if (rows && rows[0] && rows[0].data) {
+        recapData = Object.assign({ lastRecapAt: null, baseline: { nodes: 0, goalChecks: 0, moments: 0 }, history: [] }, rows[0].data);
+      }
+      setRecapStatus('saved', 'loaded');
+    } else {
+      const body = await res.text().catch(()=>'');
+      console.error('loadRecap failed:', res.status, body);
+      setRecapStatus('error', `load failed (${res.status})`);
+    }
+  } catch(e) {
+    console.error('loadRecap network error:', e);
+    setRecapStatus('error', 'load failed — offline?');
+  }
+  // give loadGraph()'s fetch a moment to populate nodes/habitData before
+  // computing totals, so the first snapshot/delta reflects real data
+  setTimeout(maybeGenerateRecap, 2500);
+}
+
+async function saveRecap() {
+  setRecapStatus('saving', 'saving...');
+  const payload = { id: 'recap', data: recapData, updated_at: new Date().toISOString() };
+  try {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${RECAP_TABLE}?on_conflict=id`, {
+      method: 'POST',
+      headers: { ...headers, 'Prefer': 'resolution=merge-duplicates,return=minimal' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      const body = await res.text().catch(()=>'');
+      console.error('saveRecap failed:', res.status, body);
+      setRecapStatus('error', `save failed (${res.status})`);
+    } else {
+      setRecapStatus('saved', 'saved ✓');
+    }
+  } catch(e) {
+    console.error('saveRecap network error:', e);
+    setRecapStatus('error', 'save failed — offline?');
+  }
+}
+function scheduleRecapSave() { clearTimeout(recapSaveTimer); recapSaveTimer = setTimeout(saveRecap, 500); }
+
+function recapCurrentTotals() {
+  const nodeCount = (typeof nodes !== 'undefined' && nodes) ? nodes.length : 0;
+  let goalChecks = 0, momentCount = 0;
+  if (typeof habitData !== 'undefined' && habitData) {
+    Object.keys(habitData).forEach(monthKey => {
+      const m = habitData[monthKey];
+      if (!m) return;
+      if (m.goals) m.goals.forEach(g => { goalChecks += (g.days ? g.days.length : 0); });
+      if (m.moments) momentCount += m.moments.length;
+    });
+  }
+  return { nodes: nodeCount, goalChecks, moments: momentCount };
+}
+
+function recapPlural(n, word) { return `${n} ${word}${n === 1 ? '' : 's'}`; }
+
+function composeRecapText(isFirst, totals, delta) {
+  if (isFirst) {
+    return `here's where things stand today:\n`
+      + `• ${recapPlural(totals.nodes, 'node')} in your graph\n`
+      + `• ${recapPlural(totals.goalChecks, 'habit check-in')} logged across your goals\n`
+      + `• ${recapPlural(totals.moments, 'memorable moment')} in your journal\n\n`
+      + `this is just a starting snapshot — your first real weekly recap lands in 7 days.`;
+  }
+  const quiet = delta.nodes === 0 && delta.goalChecks === 0 && delta.moments === 0;
+  return `here's what happened this past week:\n`
+    + `• ${delta.nodes >= 0 ? '+' : ''}${delta.nodes} node${Math.abs(delta.nodes) === 1 ? '' : 's'} added\n`
+    + `• ${recapPlural(delta.goalChecks, 'goal check-in')} logged\n`
+    + `• ${recapPlural(delta.moments, 'new moment')} journaled\n\n`
+    + (quiet ? `a quiet week — nothing new logged. no pressure, just noting it.` : `nice momentum — keep it going.`);
+}
+
+function flagNewRecap() { document.getElementById('recap-btn-dot').classList.add('show'); }
+
+function maybeGenerateRecap() {
+  const totals = recapCurrentTotals();
+  const now = Date.now();
+
+  if (!recapData.lastRecapAt) {
+    const text = composeRecapText(true, totals, null);
+    recapData.history.unshift({ generatedAt: new Date(now).toISOString(), text, isFirst: true });
+    recapData.baseline = totals;
+    recapData.lastRecapAt = new Date(now).toISOString();
+    scheduleRecapSave();
+    flagNewRecap();
+  } else if (now - new Date(recapData.lastRecapAt).getTime() >= RECAP_INTERVAL_MS) {
+    const delta = {
+      nodes: totals.nodes - recapData.baseline.nodes,
+      goalChecks: totals.goalChecks - recapData.baseline.goalChecks,
+      moments: totals.moments - recapData.baseline.moments
+    };
+    const text = composeRecapText(false, totals, delta);
+    recapData.history.unshift({ generatedAt: new Date(now).toISOString(), text, isFirst: false });
+    if (recapData.history.length > 20) recapData.history = recapData.history.slice(0, 20);
+    recapData.baseline = totals;
+    recapData.lastRecapAt = new Date(now).toISOString();
+    scheduleRecapSave();
+    flagNewRecap();
+  }
+  renderRecap();
+}
+
+function renderRecap() {
+  const latest = recapData.history[0];
+  const periodEl = document.getElementById('recap-current-period');
+  const textEl = document.getElementById('recap-current-text');
+  const nextEl = document.getElementById('recap-next-line');
+
+  if (!latest) {
+    periodEl.textContent = '';
+    textEl.textContent = 'your first recap will appear here shortly...';
+    nextEl.textContent = '';
+  } else {
+    const d = new Date(latest.generatedAt);
+    const dateStr = d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+    periodEl.textContent = latest.isFirst ? `first check-in · ${dateStr}` : `week ending ${dateStr}`;
+    textEl.textContent = latest.text;
+    if (recapData.lastRecapAt) {
+      const nextDue = new Date(recapData.lastRecapAt).getTime() + RECAP_INTERVAL_MS;
+      const daysLeft = Math.max(0, Math.ceil((nextDue - Date.now()) / (24*60*60*1000)));
+      nextEl.textContent = daysLeft === 0 ? 'next recap: due now' : `next recap in ${daysLeft} day${daysLeft === 1 ? '' : 's'}`;
+    }
+  }
+
+  const histEl = document.getElementById('recap-history-list');
+  const older = recapData.history.slice(1);
+  if (!older.length) {
+    histEl.innerHTML = '<div class="recap-empty">no past recaps yet.</div>';
+  } else {
+    histEl.innerHTML = older.map(h => {
+      const d = new Date(h.generatedAt);
+      const dateStr = d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+      return `<div class="recap-history-row"><div class="recap-history-date">${h.isFirst ? 'first check-in · ' : 'week ending '}${dateStr}</div><div class="recap-history-text">${h.text}</div></div>`;
+    }).join('');
+  }
+}
+
+function showRecapView() {
+  document.getElementById('recap-view').classList.add('open');
+  document.getElementById('recap-btn-dot').classList.remove('show');
+  renderRecap();
+}
+function hideRecapView() { document.getElementById('recap-view').classList.remove('open'); }
+document.getElementById('recap-btn').addEventListener('click', showRecapView);
+document.getElementById('recap-close').addEventListener('click', hideRecapView);
+document.getElementById('recap-view').addEventListener('mousedown', e => { if (e.target === document.getElementById('recap-view')) hideRecapView(); });
+
 loadProfile();
 loadGraph();
 loadCompanion();
 loadWallet();
 loadJournalPrompt();
 loadWardrobe();
+loadRecap();
 </script>
 </body>
 </html>
